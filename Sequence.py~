@@ -58,8 +58,8 @@ class Sequence( object ):
 	
 		# body
 		i = frame
-		while i < len( self.sequence ):
-			codon = self.sequence[i:i+3]
+		while i < len( sequence ):
+			codon = sequence[i:i+3]
 			if codon in start:
 				codon = termcolor.colored( codon, 'yellow', 'on_green', attrs=['bold'] )
 			if codon in stop:
