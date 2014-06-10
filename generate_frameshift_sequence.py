@@ -63,6 +63,7 @@ def generate_nonstop_codon( sequence, length ):
 	final_length = len( sequence ) + length
 	while len( sequence ) < final_length:
 		sequence += random.choice( non_stops )
+#	print len( sequence ) - final_length
 	return sequence
 	
 def generate_stop_codon( sequence ):
@@ -133,6 +134,18 @@ def make_frameshift_sequence2( frameshifts=[ 0, 1, 2 ], frame_lengths=[ 50, 50, 
 	
 	return frameshift_sequence
 
+def generate_frameshifts( no_of_shifts ):
+	frameshifts = [ random.choice( range( 3 ))]
+	for i in xrange( no_of_shifts-1 ):
+		if frameshifts[i] == 0:
+			frameshifts.append( random.choice([ 1, 2 ]))
+		elif frameshifts[i] == 1:
+			frameshifts.append( random.choice([ 0, 2 ]))
+		elif frameshifts[i] == 2:
+			frameshifts.append( random.choice([ 0, 1 ]))
+	
+	return frameshifts
+	
 def make_frameshift_sequence( length, no_of_frameshifts, frame_zero ):
 	global non_stops
 	global start
@@ -186,7 +199,11 @@ if __name__ == "__main__":
 #	print
 #	print
 	
-	frameshift_sequence2 = make_frameshift_sequence2()
+	no_of_shifts = random.randint( 2, 5 )
+	frameshifts = generate_frameshifts( no_of_shifts )
+	frame_lengths = [ random.randint( 100, 150 ) for i in xrange( no_of_shifts )]
+	frameshift_sequence2 = make_frameshift_sequence2( frameshifts, frame_lengths )
+	print "Frameshift sequence (%s) of lengths (%s):" % ( ",".join( map( str, frameshifts )), ",".join( map( str, frame_lengths )))
 	for i in xrange( 3 ):
 		print "%d:%s" % ( i, colour_frame( frameshift_sequence2, i, sep="" ))
-	print len( frameshift_sequence2 )
+	print "Total length: %d" % len( frameshift_sequence2 )

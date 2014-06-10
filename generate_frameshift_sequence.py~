@@ -60,11 +60,10 @@ def initiate_sequence( frame ):
 		random.choice( start )
 	
 def generate_nonstop_codon( sequence, length ):
-	print 'additional length: ',length
 	final_length = len( sequence ) + length
-	print 'final length: ',final_length
 	while len( sequence ) < final_length:
 		sequence += random.choice( non_stops )
+#	print len( sequence ) - final_length
 	return sequence
 	
 def generate_stop_codon( sequence ):
@@ -86,8 +85,6 @@ def change_frame( sequence, change ):
 	return sequence
 
 def make_frameshift_sequence2( frameshifts=[ 0, 1, 2 ], frame_lengths=[ 50, 50, 50 ] ):
-	print frameshifts
-	print frame_lengths
 	global non_stops
 	global starts
 	global stop 
@@ -117,30 +114,19 @@ def make_frameshift_sequence2( frameshifts=[ 0, 1, 2 ], frame_lengths=[ 50, 50, 
 		if i == 0: # this is the beginning
 			frameshift_sequence = initiate_sequence( frameshifts[i] )
 			frameshift_sequence = generate_nonstop_codon( frameshift_sequence, frame_lengths[i] )
-			print frameshift_sequence
 			frameshift_sequence = generate_stop_codon( frameshift_sequence )
-			print frameshift_sequence
 			change = frameshifts[i+1] - frameshifts[i]
-			print change
 			frameshift_sequence = change_frame( frameshift_sequence, change )
-			print frameshift_sequence
 			continue
 		else: # middle of sequence
 			frameshift_sequence = generate_nonstop_codon( frameshift_sequence, frame_lengths[i] )
-			print frameshift_sequence
 			frameshift_sequence = generate_stop_codon( frameshift_sequence )
-			print frameshift_sequence
 			change = frameshifts[i+1] - frameshifts[i]
-			print change
 			frameshift_sequence = change_frame( frameshift_sequence, change )
-			print frameshift_sequence
 	
 	# the remaining
-	print i
 	frameshift_sequence = generate_nonstop_codon( frameshift_sequence, frame_lengths[i+1] )
-	print frameshift_sequence
 	frameshift_sequence = generate_stop_codon( frameshift_sequence )
-	print frameshift_sequence
 			
 		# generate Ni non-stop codons: generate_nonstop_codons( sequence, length, index=None )
 		# add a stop: terminate( sequence )
@@ -148,6 +134,18 @@ def make_frameshift_sequence2( frameshifts=[ 0, 1, 2 ], frame_lengths=[ 50, 50, 
 	
 	return frameshift_sequence
 
+def generate_frameshifts( no_of_shifts ):
+	frameshifts = [ random.choice( range( 3 ))]
+	for i in xrange( no_of_shifts-1 ):
+		if frameshifts[i] == 0:
+			frameshifts.append( random.choice([ 1, 2 ]))
+		elif frameshifts[i] == 1:
+			frameshifts.append( random.choice([ 0, 2 ]))
+		elif frameshifts[i] == 2:
+			frameshifts.append( random.choice([ 0, 1 ]))
+	
+	return frameshifts
+	
 def make_frameshift_sequence( length, no_of_frameshifts, frame_zero ):
 	global non_stops
 	global start
@@ -201,7 +199,11 @@ if __name__ == "__main__":
 #	print
 #	print
 	
-	frameshift_sequence2 = make_frameshift_sequence2()
+	no_of_shifts = random.randint( 1, 5 )
+	frameshifts = generate_frameshifts( no_of_shifts )
+	frame_lengths = [ random.randint( 100, 150 ) for i in xrange( no_of_shifts )]
+	frameshift_sequence2 = make_frameshift_sequence2( frameshifts, frame_lengths )
+	print "Frameshift sequence (%s) of lengths (%s):" % ( ",".join( map( str, frameshifts )), ",".join( map( str, frame_lengths )))
 	for i in xrange( 3 ):
 		print "%d:%s" % ( i, colour_frame( frameshift_sequence2, i, sep="" ))
-	print len( frameshift_sequence2 )
+	print "Total length: %d" % len( frameshift_sequence2 )
