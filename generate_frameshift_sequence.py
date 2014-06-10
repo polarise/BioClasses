@@ -60,7 +60,8 @@ def initiate_sequence( frame ):
 		random.choice( start )
 	
 def generate_nonstop_codon( sequence, length ):
-	while len( sequence )/3 < length:
+	final_length = len( sequence ) + length
+	while len( sequence ) < final_length:
 		sequence += random.choice( non_stops )
 	return sequence
 	
@@ -82,7 +83,7 @@ def change_frame( sequence, change ):
 	
 	return sequence
 
-def make_frameshift_sequence2( frameshifts=[ 0, 1 ], frame_lengths=[ 50, 50 ] ):
+def make_frameshift_sequence2( frameshifts=[ 0, 1, 2 ], frame_lengths=[ 50, 50, 50 ] ):
 	global non_stops
 	global starts
 	global stop 
@@ -90,6 +91,12 @@ def make_frameshift_sequence2( frameshifts=[ 0, 1 ], frame_lengths=[ 50, 50 ] ):
 	frameshift_sequence = ""
 	# convert all frames to values on {0,1,2}
 	frameshifts = map( lambda x: x % 3, frameshifts )
+	
+	# make sure that there are as many shifts as lengths
+	try:
+		assert len( frameshifts ) == len( frame_lengths )
+	except:
+		raise ValueError( "The number of frameshifts (%d) does not match the number of frame lengths (%d)." % ( len( frameshifts ), len( frame_lengths )))
 	
 	# check to make sure that you don't have null frame shifts e.g. 1 -> 1
 	null_shifts = 0
@@ -105,6 +112,10 @@ def make_frameshift_sequence2( frameshifts=[ 0, 1 ], frame_lengths=[ 50, 50 ] ):
 	for i in xrange( len( frameshifts )-1 ): # exclude the last frame shift
 		if i == 0: # this is the beginning
 			frameshift_sequence = initiate_sequence( frameshifts[i] )
+			frameshift_sequence = generate_nonstop_codon( frameshift_sequence, frame_lengths[i] )
+			frameshift_sequence = generate_stop_codon( frameshift_sequence )
+			change = frameshifts[i+1] - frameshifts[i]
+			frameshift_sequence = change_frame( frameshift_sequence, change )
 			continue
 		else: # middle of sequence
 			frameshift_sequence = generate_nonstop_codon( frameshift_sequence, frame_lengths[i] )
