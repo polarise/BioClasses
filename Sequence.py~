@@ -48,14 +48,17 @@ class Sequence( object ):
 		else:
 			return "Random sequence of length %d:" % self.length
 		
-	def __repr__( self, as_codons=False ):
+	def __repr__( self, group_in=1 ):
 		sequence = list()
-		if as_codons:
-			for i in xrange( 0, len( self.sequence ), 3 ):
-				sequence.append( self.sequence[i:i+3] )
+		if group_in > 1:
+			for i in xrange( 0, len( self.sequence ), group_in ):
+				sequence.append( self.sequence[i:i+group_in] )
 			return " ".join( sequence )
 		else:
 			return self.sequence
+		
+	def __str__( self ):
+		return self.sequence
 	
 	def generate_random_sequence( self, length ):
 		"""
