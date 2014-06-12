@@ -40,9 +40,13 @@ class Sequence( object ):
 		# front
 		codon = self.sequence[0:frame]
 		if codon in self.starts:
-			codon = termcolor.colored( codon, 'yellow', 'on_yellow', attrs='bold' )
-		if codon in self.stops:
-			codon = termcolor.colored( codon, 'white', 'on_red', attrs='bold' )
+			codon = termcolor.colored( codon, 'yellow', 'on_yellow', attrs=['bold'] )
+		elif codon in self.stops:
+			codon = termcolor.colored( codon, 'white', 'on_red', attrs=['bold'] )
+		elif codon in self.non_stops:
+			codon = termcolor.colored( codon, 'blue', 'on_white', attrs=['bold'] )
+		else:
+			codon = termcolor.colored( codon, 'red', 'on_green', attrs=['bold'] )
 	
 		if frame % 3 != 0:
 			coloured_sequence += codon + sep
@@ -53,18 +57,18 @@ class Sequence( object ):
 			codon = self.sequence[i:i+3]
 			if codon in self.starts:
 				codon = termcolor.colored( codon, 'yellow', 'on_green', attrs=['bold'] )
-			if codon in self.stops:
+			elif codon in self.stops:
 				codon = termcolor.colored( codon, 'white', 'on_red', attrs=['bold'] )
+			elif codon in self.non_stops:
+				codon = termcolor.colored( codon, 'blue', 'on_white', attrs=['bold'] )
+			else:
+				codon = termcolor.colored( codon, 'red', 'on_green', attrs=['bold'] )
 			coloured_sequence += codon + sep
 			i += 3
 	
 		return coloured_sequence
 	
-	def __str__( self ):
-		return self.sequence
-
 	def __repr__( self ):
-		print "I passed here"
 		sequence = list()
 		if self.as_codons:
 			for i in xrange( 0, len( self.sequence ), 3 ):
@@ -75,7 +79,44 @@ class Sequence( object ):
 		
 	def info( self ):
 		raise NotImplementedError
-
+	
+	def binary_frame( self, frame, sep=" " ):
+		"""
+		Method that returns a binary codon sequence: 0 - stop; 1 - non-stop;
+		red: stop; blue: start
+		"""
+		binary_sequence = ""
+		
+		# front
+		codon = self.sequence[0:frame]
+		if codon in self.starts:
+			bit = termcolor.colored( "1", 'white', 'on_blue', attrs=['bold'] )
+		elif codon in self.stops:
+			bit = termcolor.colored( "0", 'white', 'on_red', attrs=['bold'] )
+		elif codon in self.non_stops:
+			bit = termcolor.colored( "1", 'blue', 'on_white', attrs=['bold'] )
+		else:
+			bit = termcolor.colored( "0", 'red', 'on_green', attrs=['bold'] )
+		
+		if frame % 3 != 0:
+			binary_sequence += bit + sep
+			
+		# body
+		i = frame
+		while i < len( self.sequence ):
+			codon = self.sequence[i:i+3]
+			if codon in self.starts:
+				bit = termcolor.colored( "1", 'white', 'on_blue', attrs=['bold'] )
+			elif codon in self.stops:
+				bit = termcolor.colored( "0", 'white', 'on_red', attrs=['bold'] )
+			elif codon in self.non_stops:
+				bit = termcolor.colored( "1", 'blue', 'on_white', attrs=['bold'] )
+			else:
+				bit = termcolor.colored( "0", 'red', 'on_green', attrs=['bold'] )
+			binary_sequence += bit + sep
+			i += 3
+		
+		return binary_sequence
 
 class RandomSequence( Sequence ):
 	def __init__( self, length ):
@@ -84,7 +125,7 @@ class RandomSequence( Sequence ):
 	def info( self ):
 		return "Random sequence of length %d:" % self.length
 
-	def generate_random_sequence( self ):
+	def generate( self ):
 		"""
 		Method to generate a random sequence of lenght length
 		"""
@@ -94,6 +135,7 @@ class RandomSequence( Sequence ):
 
 class RandomFSSequence( Sequence ):
 	def __init__( self, frameshifts=None, frame_lengths=None, no_of_shifts=None, min_length=None, max_length=None ):
+		super( RandomFSSequence, self ).__init__()
 		self.is_frameshift = True
 		self.frameshifts = frameshifts
 		self.frame_lengths = frame_lengths
@@ -193,11 +235,11 @@ class RandomFSSequence( Sequence ):
 			self.frameshifts = self._generate_frameshifts( self.no_of_shifts )
 			self.frame_lengths = self._generate_frame_lengths( self.no_of_shifts, self.min_length, self.max_length )
 		elif self.frameshifts is not None and self.frame_lengths is not None:
-			print >> sys.stderr, "Frameshifts and frame lengths retained:", self.frameshift, self.frame_lengths
+			print >> sys.stderr, "Frameshifts and frame lengths retained:", self.frameshifts, self.frame_lengths
 		else:
 			raise ValueError( "Non-empty frameshifts or frame_lengths:", self.frameshifts, self.frame_lengths)
 
-	def generate_frameshift_sequence( self ):
+	def generate( self ):
 		"""
 		Method to generate a sequence with frameshifts defined by frameshifts and
 		frame_lengths
