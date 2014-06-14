@@ -77,7 +77,7 @@ class Sequence( object ):
 		else:
 			return self.sequence
 		
-	def info( self ):
+	def info( self, comment="" ):
 		raise NotImplementedError
 	
 	def binary_frame( self, frame, sep=" " ):
@@ -122,8 +122,8 @@ class RandomSequence( Sequence ):
 	def __init__( self, length ):
 		super( RandomSequence, self ).__init__( length=length )
 	
-	def info( self ):
-		return "Random sequence of length %d:" % self.length
+	def info( self, comment="" ):
+		return "Random sequence of length %d: %s" % ( self.length, comment )
 
 	def generate( self ):
 		"""
@@ -143,8 +143,8 @@ class RandomFSSequence( Sequence ):
 		self.min_length = min_length
 		self.max_length = max_length
 	
-	def info( self ):
-		return "Frameshift sequence (%s) of lengths (%s) and total length of %d:" % ( ",".join( map( str, self.frameshifts )), ",".join( map( str, self.frame_lengths )), self.length )
+	def info( self, comment="" ):
+		return "Frameshift sequence (%s) of lengths (%s) and total length of %d: %s" % ( ",".join( map( str, self.frameshifts )), ",".join( map( str, self.frame_lengths )), self.length, comment )
 
 	def _initialise_sequence( self, frame ):
 		"""
@@ -299,7 +299,7 @@ class BiologicalSequence( RandomFSSequence ):
 	def __init__( self ):
 		super( RandomFSSequence, self ).__init__( sequence )
 	
-	def info( self ):
+	def info( self, comment="" ):
 		pass
 	
 	def detect_frameshifts( self ):

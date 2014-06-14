@@ -22,9 +22,21 @@ def main():
 #	
 #	print
 	
-	print s.info()
-#	print s.colour_frame( 0, sep="" )
-	for i in xrange( 2, -3, -1 ):
+	print s.info( "without UGA" )
+
+	for i in xrange( 4, -5, -1 ):
+		if i > 0:
+			print "+%d: %s" % ( i, s.binary_frame( i, sep="" ))
+		elif i == 0:
+			print " %d: %s" % ( i, s.binary_frame( i, sep="" ))
+		elif i < 0:
+			print "%d: %s" % ( i, s.binary_frame( i, sep="" ))
+		
+	s.stops.append( "UGA" )
+	print
+
+	print s.info( "with UGA" )
+	for i in xrange( 4, -5, -1 ):
 		if i > 0:
 			print "+%d: %s" % ( i, s.binary_frame( i, sep="" ))
 		elif i == 0:
