@@ -20,11 +20,11 @@ class ShiftMatrix( object ):
 		i = self.max_shift
 		for row in self.matrix:
 			if i > 0:
-				output_str += " +%d: %s\n" % ( i, " ".join( map( lambda x: x.rjust( rjust_int ), map( str, row ))))
+				output_str += "+%d: %s\n" % ( i, " ".join( map( lambda x: x.rjust( rjust_int ), map( str, row ))))
 			elif i == 0:
-				output_str += "  %d: %s\n" % ( i, " ".join( map( lambda x: x.rjust( rjust_int ), map( str, row ))))
-			else:
 				output_str += " %d: %s\n" % ( i, " ".join( map( lambda x: x.rjust( rjust_int ), map( str, row ))))
+			else:
+				output_str += "%d: %s\n" % ( i, " ".join( map( lambda x: x.rjust( rjust_int ), map( str, row ))))
 			i -= 1
 		return output_str.strip( '\n' )
 

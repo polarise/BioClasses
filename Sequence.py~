@@ -174,7 +174,7 @@ class Sequence( object ):
 		max_frame = max( map( abs, keys ))
 		rjust_int = int( math.floor( math.log( max_frame, 10 ) + 1 ))
 		
-		output_str = "BinaryCodonMatrix:\n"
+		output_str = "BinaryCodonMatrix of length %d:\n" % len( self.binary_codon_matrix[0] )
 		for k in keys:
 			if k > 0:
 				output_str += "+%s: %s\n" % ( str( k ).rjust( rjust_int ), " ".join( map( lambda x: x.rjust( 2 ), map( str, self.binary_codon_matrix[k] ))))
@@ -203,25 +203,31 @@ class Sequence( object ):
 		dist = 0
 		score = 0
 		found_stop = False
-		while not found_stop:
-			codon = self.binary_codon_matrix[frame][pos]
-			if codon <= 0:
+		reached_end = False
+		while not found_stop and not reached_end:
+			try:
+				codon = self.binary_codon_matrix[frame][pos]
+				if codon <= 0:
+					found_stop = True
+				else:
+					dist += 1
+					pos += 1
 				score += codon
-				found_stop = True
-			else:
-				dist += 1
-				pos += 1
-				score += codon
+			except IndexError:
+				reached_end = True
 				
 		return dist, score
 	
 	#*****************************************************************************
 	
 	def get_best_frame( self, frame, pos=0 ):
+		frames = self.binary_codon_matrix.keys()
+		max_frame = max( frames )
+		min_frame = min( frames )
 		best_frame = None
 		longest_orf = 0
 		orf_score = 0
-		frame_range = range( frame - 2, frame + 3 )
+		frame_range = range( min( max_frame, frame + 2 ), max( min_frame, frame - 3 ), -1 )
 		frame_range.remove( frame )
 		
 		for i in frame_range:
@@ -440,8 +446,10 @@ class RandomFSSequence( Sequence ):
 #*******************************************************************************
 	
 class BiologicalSequence( RandomFSSequence ):
-	def __init__( self ):
-		super( RandomFSSequence, self ).__init__( sequence )
+	def __init__( self, sequence ):
+		super( BiologicalSequence, self ).__init__( sequence )
+		self.sequence = sequence
+		self.length = len( sequence )
 	
 	#*****************************************************************************
 	
@@ -450,14 +458,45 @@ class BiologicalSequence( RandomFSSequence ):
 	
 	#*****************************************************************************
 	
-	def detect_frameshifts( self ):
+	def detect_frameshifts( self, frame=0 ):
+		# initialise
+		self.frameshifts = list()
+		self.frame_lengths = list()
+		self.frame_scores = list()
+		self.overall_score = None
+		
 		# must have a valid binary codon matrix
 		self.set_binary_codon_matrix()
 		
-		pos = 0
-		score = 0
+		self.frameshifts.append( frame )
+		matrix_length = len( self.binary_codon_matrix[frame] )
 		
-		while pos < self.length:
+		l, s = self.dist_to_stop( frame )
+		
+		pos = l + 1
+		score = s
+		
+		self.frame_lengths.append( l )
+		self.frame_scores.append( s )
+		
+		print "frame\tpos\tscore"
+		print "%d\t%d\t%d" % ( frame, pos, score )
+
+		while pos < matrix_length:
+			f, l, s = self.get_best_frame( frame, pos )	# frame, length, score
+			frame = f
+			pos += l + 1
+			score += s
+			print "%d\t%d\t%d" % ( frame, pos, score )
+			self.frameshifts.append( f )
+			self.frame_lengths.append( l )
+			self.frame_scores.append( s )
+		
+		self.no_of_shifts = len( self.frameshifts ) - 1
+		self.overall_score = sum( self.frame_scores )
+		
+			
+			
 			
 			
 
