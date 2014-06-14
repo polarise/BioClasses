@@ -16,7 +16,7 @@ class ShiftMatrix( object ):
 	
 	def __repr__( self ):
 		rjust_int = int( math.floor( math.log( self.length, 10 ) + 1 ))
-		output_str = "ShiftMatrix object for sequence of length %d:\n" % self.length
+		output_str = "ShiftMatrix for sequence of length %d:\n" % self.length
 		i = self.max_shift
 		for row in self.matrix:
 			if i > 0:
