@@ -202,21 +202,107 @@ class Sequence( object ):
 		
 		dist = 0
 		score = 0
-		found_stop = False
-		reached_end = False
-		while not found_stop and not reached_end:
+#		found_stop = False
+		codon = self.binary_codon_matrix[frame][pos]
+		
+		if codon <= 0:
+			stop_reached = True
+			pos += 1
+		else:
+			stop_reached = False
+			end_reached = False
+		
+		while not stop_reached:
 			try:
 				codon = self.binary_codon_matrix[frame][pos]
-				if codon <= 0:
-					found_stop = True
-				else:
-					dist += 1
-					pos += 1
-				score += codon
 			except IndexError:
-				reached_end = True
+				break # stop not reached but end reached
+			if codon >= 1:
+				dist += 1
+				score += codon
+			elif codon <= 0:
+				stop_reached = True
+			pos += 1
+		
+		# set end_reached flag if necessary
+		try:
+			codon = self.binary_codon_matrix[frame][pos]
+			if codon < 0:
+				end_reached = True
+		except IndexError:
+			end_reached = True
+			
+#		while not reached_end:
+#			try:
+#				codon = self.binary_codon_matrix[frame][pos]
+#			except IndexError:
+#				break
+#			if codon > 0:
+#				dist += 1
+#				score += codon
+#			elif codon == 0:
+#				return dist, score
+#			elif codon < 0:
+#				reached_end = True
+#			pos += 1	
+		
+#		while not reached_end:
+#			try:
+#				codon = self.binary_codon_matrix[frame][pos]
+#			except IndexError:
+#				reached_end = True
+#				continue
+#			
+#			if codon == 0: # found a stop
+#				found_stop = True
+#			elif codon < 0: # found the end
+#				reached_end = True
+#			else:
+#				dist += 1
+#				pos += 1
+#				score += codon
+#			except IndexError:
+#				reached_end = True
 				
-		return dist, score
+		return dist, score, end_reached
+			
+	#*****************************************************************************
+	
+	def dist_to_stop2( self, frame, pos=0 ):
+		dist = 0
+		score = 0
+		end_reached = False
+		
+		while not end_reached:
+			try:
+				codon = self.binary_codon_matrix[frame][pos]
+			except IndexError:
+				end_reached = True
+				return dist, score, end_reached
+			
+			try:
+				next_codon = self.binary_codon_matrix[frame][pos+1]
+			except IndexError:
+				next_codon = -1
+				end_reached = True
+				
+			if codon == 0 and next_codon < 0:
+				return dist, score, end_reached
+			elif codon >= 1 and next_codon == 0:
+				dist += 1
+				score += codon
+				end_reached = True
+				return dist, score, end_reached
+			elif codon >= 1 and next_codon < 0:
+				dist += 1
+				score += codon
+				end_reached = True
+				return dist, score, end_reached
+			elif codon >= 1 and next_codon >= 1:
+				dist += 1
+				score += codon
+			pos += 1
+				
 	
 	#*****************************************************************************
 	
@@ -224,25 +310,30 @@ class Sequence( object ):
 		frames = self.binary_codon_matrix.keys()
 		max_frame = max( frames )
 		min_frame = min( frames )
-		best_frame = None
-		longest_orf = 0
-		orf_score = 0
-		frame_range = range( min( max_frame, frame + 2 ), max( min_frame, frame - 3 ), -1 )
-		frame_range.remove( frame )
 		
+		# determine the frame range to search
+#		frame_range = range( min( max_frame, frame + 2 ), max( min_frame, frame - 3 ), -1 )
+		frame_range = range( 3 )
+		frame_range.remove( frame ) # exclude the current frame
+		
+		best_frame = None
+		orf_length = 0
+		orf_score = 0
 		for i in frame_range:
-			d, s = self.dist_to_stop( i, pos )
+			d, s, er = self.dist_to_stop2( i, pos )
 			if best_frame is None:
-				longest_orf = d
+				orf_length = d
 				orf_score = s
 				best_frame = i
 			else:
-				if d > longest_orf:
-					longest_orf = d
+				if d > orf_length:
+					orf_length = d
 					orf_score = s
 					best_frame = i
 		
-		return best_frame, longest_orf, orf_score
+		end_reached = er
+		
+		return best_frame, orf_length, orf_score, end_reached
 	
 #*******************************************************************************
 
@@ -451,6 +542,10 @@ class BiologicalSequence( RandomFSSequence ):
 		self.sequence = sequence
 		self.length = len( sequence )
 	
+		
+		# must have a valid binary codon matrix
+		self.set_binary_codon_matrix( weighted_start=True )
+		
 	#*****************************************************************************
 	
 	def info( self, comment="" ):
@@ -465,13 +560,10 @@ class BiologicalSequence( RandomFSSequence ):
 		self.frame_scores = list()
 		self.overall_score = None
 		
-		# must have a valid binary codon matrix
-		self.set_binary_codon_matrix()
-		
 		self.frameshifts.append( frame )
-		matrix_length = len( self.binary_codon_matrix[frame] )
 		
-		l, s = self.dist_to_stop( frame )
+		l, s, er = self.dist_to_stop2( frame )
+		end_reached = er
 		
 		pos = l + 1
 		score = s
@@ -479,24 +571,69 @@ class BiologicalSequence( RandomFSSequence ):
 		self.frame_lengths.append( l )
 		self.frame_scores.append( s )
 		
-		print "frame\tpos\tscore"
-		print "%d\t%d\t%d" % ( frame, pos, score )
+		print "frame\tpos\tscore\tf\tl\ts\tend?"
+		print "%d\t%d\t%d\t%s\t%d\t%d\t%s" % ( frame, pos, score, frame, l, s, end_reached )
 
-		while pos < matrix_length:
-			f, l, s = self.get_best_frame( frame, pos )	# frame, length, score
+		while not end_reached:
+			f, l, s, er = self.get_best_frame( frame, pos )	# frame, length, score
+			end_reached = er
 			frame = f
 			pos += l + 1
 			score += s
-			print "%d\t%d\t%d" % ( frame, pos, score )
+			print "%d\t%d\t%d\t%s\t%d\t%d\t%s" % ( frame, pos, score, frame, l, s, end_reached )
 			self.frameshifts.append( f )
 			self.frame_lengths.append( l )
 			self.frame_scores.append( s )
 		
 		self.no_of_shifts = len( self.frameshifts ) - 1
 		self.overall_score = sum( self.frame_scores )
+	
+	#*****************************************************************************
+	
+	#*****************************************************************************	
+	
+	def detect_frameshifts2( self ):
+		stop_pos = dict()
+		frame_scores = dict()
+		for frame in xrange( 3 ):
+			pos = 0
+			score = 0
+			matrix_length = len( self.binary_codon_matrix[frame] )
+			end_reached = False
+#			while pos < matrix_length:
+			while not end_reached:
+				d, s, er = self.dist_to_stop( frame, pos )
+				end_reached = er
+				pos += d + 1
+				score += s
+				if pos not in stop_pos:
+					stop_pos[pos] = [ frame ]
+				else:
+					stop_pos[pos] += [ frame ]
+				frame_scores[frame] = score
 		
+		print stop_pos
+		print frame_scores
+		
+		keys = stop_pos.keys()
+		keys.sort()
+		
+		stop_sequence = list()
+		for k in keys:
+			stop_sequence.append( stop_pos[k][0] )
 			
-			
-			
-			
-
+		print stop_sequence
+		
+		frameshifts = list()
+		ignore = set()
+		for s in stop_sequence:
+			if len( ignore ) < 2:
+				ignore.add( s )
+			elif s in ignore:
+				pass
+			else:
+				frameshifts.append( s )
+				ignore = set()
+				ignore.add( s )
+		
+		print frameshifts		
