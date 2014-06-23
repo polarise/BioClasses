@@ -10,18 +10,30 @@ class Tree( object ):
 	def graft_branch( self, branch ):
 		if self.root is None:
 			self.root = branch.root
-			self.leaves = branch.descendands
+			for d in branch.descendants:
+				d.parent = branch.root
+				self.leaves.append( d )
 		else:
+			leaves_to_remove = list()
+			print "leaves: ",self.leaves
+			for leaf in self.leaves:
+				print leaf, leaf.parent, leaf.parent.parent
+			print
 			leaves = list()
 			for leaf in self.leaves:
-				if leaf = branch.root:
+				if leaf == branch.root:
 					for d in branch.descendants:
 						d.parent = leaf
-						leaves.append( d )
-				else:
-					leaves.append( leaf )
+						self.leaves.append( d )
+					leaves_to_remove.append( leaf )
 			
-			self.leaves = leaves
+			for l in leaves_to_remove:
+				self.leaves.remove( l )
+			
+			# self.leaves += leaves
+			print "leaves: ", self.leaves
+			for leaf in self.leaves:
+				print leaf, leaf.parent, leaf.parent.parent
 		
 	def graft( self, node ):
  		print >> sys.stderr, "Attempting to add %s with %s..." % ( str( node ), ", ".join( map( str, node.descendants )))
