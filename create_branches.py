@@ -56,6 +56,10 @@ p = Paths()
 for B in Branches:
 	print B
 	p.extend( B )
+	
+for i in p.branches:
+	print i
+	print p.branches[i]
 
 all_paths = p.get_all_path_sequences()
 all_paths.sort()

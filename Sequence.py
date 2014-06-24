@@ -7,7 +7,7 @@ import termcolor
 
 class Sequence( object ):
 	"""
-	Should be an abstract base class for Sequence objects
+	The base class
 	"""
 	def __init__( self, sequence=None, length=None, bases='ACGU', starts=[ 'AUG' ], stops=[ 'UAA', 'UAG' ] ):
 		"""
@@ -29,6 +29,9 @@ class Sequence( object ):
 		
 		self.is_frameshift = False
 		self.as_codons = False
+		
+		self.stop_positions = dict()
+		self.frame_sequence = list()
 	
 	#*****************************************************************************
 	
@@ -75,7 +78,7 @@ class Sequence( object ):
 				codon = termcolor.colored( codon, 'red', 'on_green', attrs=['bold'] )
 			coloured_sequence += codon + sep
 			i += 3
-	
+		
 		return coloured_sequence
 	
 	#*****************************************************************************
@@ -302,7 +305,6 @@ class Sequence( object ):
 				dist += 1
 				score += codon
 			pos += 1
-				
 	
 	#*****************************************************************************
 	
@@ -334,6 +336,40 @@ class Sequence( object ):
 		end_reached = er
 		
 		return best_frame, orf_length, orf_score, end_reached
+	
+	#*****************************************************************************
+	
+	def get_stop_positions( self ):
+		"""
+		Method to return the position of stop codons in all frames
+		"""		
+		stop_pos = dict()
+		
+		for frame in xrange( 3 ):
+			i = frame
+			while i < self.length:
+				codon = self.sequence[i:i+3]
+				if codon in self.stops:
+					stop_pos[i] = frame
+					# if i not in stop_pos:
+					# 	stop_pos[i] = [ frame ]
+					# else:
+					# 	stop_pos[i] += [ frame ]
+				i += 3
+
+		return stop_pos
+		
+	#*****************************************************************************
+	
+	def get_frame_sequence( self ):
+		self.stop_positions = self.get_stop_positions()
+		positions = self.stop_positions.keys()
+		positions.sort()
+		
+		self.frame_sequence = list()
+		for p in positions:
+			self.frame_sequence.append( ( self.stop_positions[p], p ))
+		
 	
 #*******************************************************************************
 
@@ -542,14 +578,13 @@ class BiologicalSequence( RandomFSSequence ):
 		self.sequence = sequence
 		self.length = len( sequence )
 	
-		
 		# must have a valid binary codon matrix
 		self.set_binary_codon_matrix( weighted_start=True )
 		
 	#*****************************************************************************
 	
 	def info( self, comment="" ):
-		pass
+		return "Unknown biological sequence of length %s bases." % self.length
 	
 	#*****************************************************************************
 	
@@ -587,12 +622,16 @@ class BiologicalSequence( RandomFSSequence ):
 		
 		self.no_of_shifts = len( self.frameshifts ) - 1
 		self.overall_score = sum( self.frame_scores )
-	
-	#*****************************************************************************
-	
+		
 	#*****************************************************************************	
 	
 	def detect_frameshifts2( self ):
+		"""
+		Alternative algorithm to detect frameshifts: the sequence with the longest
+		frames corresponds with the a sequence defined as follows:
+		- the first frame is the third 
+		- every other frame except the current frame and the next frame i.e. every second unique frame
+		"""
 		stop_pos = dict()
 		frame_scores = dict()
 		for frame in xrange( 3 ):
@@ -636,4 +675,9 @@ class BiologicalSequence( RandomFSSequence ):
 				ignore = set()
 				ignore.add( s )
 		
-		print frameshifts		
+		print frameshifts
+		
+	#*****************************************************************************
+	
+
+		
