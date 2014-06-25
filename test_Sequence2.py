@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 from __future__ import division
 import sys
 from Sequence import *
@@ -12,19 +13,10 @@ def main():
 	
 	print s.info( "without UGA" )
 	
-	for i in xrange( 3 ):
-		if i > 0:
-			print "+%d: %s" % ( i, s.binary_frame( i, sep="" ))
-		elif i == 0:
-			print " %d: %s" % ( i, s.binary_frame( i, sep="" ))
-		elif i < 0:
-			print "%d: %s" % ( i, s.binary_frame( i, sep="" ))
-	print "    " + "         |"*(( s.length )//30 )
-	
 	# a Sequence object
-	# t = BiologicalSequence( s.sequence )
-	t = RandomSequence( 1000 )
-	t.generate()
+	t = BiologicalSequence( s.sequence )
+	#t = RandomSequence( 100 )
+	#t.generate()
 		
 	print 
 	print t.info()
@@ -32,19 +24,22 @@ def main():
 		print t.colour_frame( i, sep="" )
 	print "         |"*(( s.length )//10 )
 	
-	t.get_frame_sequence()
+	t.get_stop_sequence()
 	
-	print "The raw frame sequence..."
-	print t.frame_sequence
+	print "The raw stop sequence..."
+	print t.stop_sequence
+	print
 	
 	# now to create paths
-	p = Paths( t.frame_sequence )
+	p = Paths( t.stop_sequence )
 	
-	print "The sanitised frame sequence..."
+	print "The sanitised stop sequence..."
 	print p.unique_frame_sequence
+	print
 	
-	print "Create the branches..."
+	print "Create the branches from the stop sequence..."
 	p.create_branches()
+	print
 	
 	print "View the branches..."
 	for B in p.branches:
@@ -67,9 +62,37 @@ def main():
 	
 	for frame in xrange( 3 ):
 		print "Frameshift sequences for frame %d:" % frame
-		for j in p.get_frame_path_sequences( frame ):
+		for j in p.get_frame_paths( frame ):
 			print len( j ), " : ", j
 		print
+	
+	"""
+	frameshifted_sequence, fragments = t.frameshift_from_path( all_paths[0] )
+	q = BiologicalSequence( s.sequence )
+	print s.info()
+	for i in xrange( 3 ):
+		print q.colour_frame( i, sep="" )
+	print "         |"*(( s.length )//10 )
+	print
+	
+	print " ".join( fragments )
+	print
+	
+	print t.path
+	print t.colour_frameshifted_sequence( sep="" )
+	print "         |"*(( s.length )//10 )
+	"""
+	
+	for i in xrange( 3 ):
+		all_paths = p.get_frame_paths( i )
+		for a in all_paths:
+			frameshifted_sequence, fragments = t.frameshift_from_path( a )
+			print t.path
+			print t.colour_frameshifted_sequence( sep="" )
+			print " ".join( fragments )
+			print
+		
+	print "Actual sequence: %s" % s.info()
 	
 if __name__ == "__main__":
 	main()

@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 from __future__ import division
 import sys
 import itertools
@@ -31,7 +32,7 @@ class Sequence( object ):
 		self.as_codons = False
 		
 		self.stop_positions = dict()
-		self.frame_sequence = list()
+		self.stop_sequence = list()
 	
 	#*****************************************************************************
 	
@@ -46,7 +47,7 @@ class Sequence( object ):
 		Method to return in colour for frame frame
 		"""
 		# ensure that you have a valid frame; no need for errorcheck
-		frame = frame % 3 
+		frame = frame % 3
 		
 		coloured_sequence = ""
 	
@@ -190,9 +191,11 @@ class Sequence( object ):
 	
 	#*****************************************************************************
 	
+	"""
+	
+	"""
 	def dist_to_stop( self, frame, pos=0 ):
-		# set the binary codon matrix if it's not set yet
-		if self.binary_codon_matrix is None:
+		if self.binary_codon_matrix is None: # set the binary codon matrix if it's not set yet
 			print >> sys.stderr, "Setting binary codon matrix...", 
 			self.set_binary_codon_matrix()
 			print >> sys.stderr, "DONE"
@@ -361,14 +364,14 @@ class Sequence( object ):
 		
 	#*****************************************************************************
 	
-	def get_frame_sequence( self ):
+	def get_stop_sequence( self ):
 		self.stop_positions = self.get_stop_positions()
 		positions = self.stop_positions.keys()
 		positions.sort()
 		
-		self.frame_sequence = list()
+		self.stop_sequence = list()
 		for p in positions:
-			self.frame_sequence.append( ( self.stop_positions[p], p ))
+			self.stop_sequence.append( ( self.stop_positions[p], p ))
 		
 	
 #*******************************************************************************
@@ -581,6 +584,10 @@ class BiologicalSequence( RandomFSSequence ):
 		# must have a valid binary codon matrix
 		self.set_binary_codon_matrix( weighted_start=True )
 		
+		self.frameshifted_sequence = None
+		self.path = None
+		self.fragments = list()
+		
 	#*****************************************************************************
 	
 	def info( self, comment="" ):
@@ -589,8 +596,7 @@ class BiologicalSequence( RandomFSSequence ):
 	#*****************************************************************************
 	
 	def detect_frameshifts( self, frame=0 ):
-		# initialise
-		self.frameshifts = list()
+		self.frameshifts = list() # initialise
 		self.frame_lengths = list()
 		self.frame_scores = list()
 		self.overall_score = None
@@ -679,5 +685,75 @@ class BiologicalSequence( RandomFSSequence ):
 		
 	#*****************************************************************************
 	
-
+	def frameshift_from_path( self, path ):
+		"""
+		"""
+		# first get all frame of self.sequence
+		sequence_in_frames = dict()
+		for i in xrange( 3 ):
+			sequence_in_frames[i] = self.sequence[i:]
 		
+		#for f in sequence_in_frames:
+			#print f, ":", sequence_in_frames[f]
+		#print "    " + "         |"*(( self.length )//10 )
+		#print
+		
+		self.frameshifted_sequence = ""
+		self.fragments = list()
+		i = 0
+		f_i = 0
+		for f,j in path:
+			self.frameshifted_sequence += self.sequence[i+(f-f_i):j]
+			self.fragments.append( self.sequence[i+(f-f_i):j] )
+			i = j
+			f_i = f
+			# we could factor in the last trivial frameshift...
+		self.frameshifted_sequence += self.sequence[-1]
+		self.fragments[-1] += self.sequence[-1]
+			# or (preferably) allow the last fragment to run until the end
+			#self.frameshifted_sequence += self.sequence[j:]
+			#self.fragments[-1] += self.sequence[-1]
+		
+		self.path = path
+			
+		return self.frameshifted_sequence, self.fragments
+	
+	def colour_frameshifted_sequence( self, frame=0, sep=" " ):
+		"""
+		Method to return in colour for frame frame
+		"""
+		# ensure that you have a valid frame; no need for errorcheck
+		frame = frame % 3
+		
+		coloured_sequence = ""
+	
+		# front
+		codon = self.frameshifted_sequence[0:frame]
+		if codon in self.starts:
+			codon = termcolor.colored( codon, 'yellow', 'on_yellow', attrs=['bold'] )
+		elif codon in self.stops:
+			codon = termcolor.colored( codon, 'white', 'on_red', attrs=['bold'] )
+		elif codon in self.non_stops:
+			codon = termcolor.colored( codon, 'blue', 'on_white', attrs=['bold'] )
+		else:
+			codon = termcolor.colored( codon, 'red', 'on_green', attrs=['bold'] )
+	
+#		if frame % 3 != 0:
+		coloured_sequence += codon + sep
+	
+		# body
+		i = frame
+		while i < len( self.frameshifted_sequence ):
+			codon = self.frameshifted_sequence[i:i+3]
+			if codon in self.starts:
+				codon = termcolor.colored( codon, 'yellow', 'on_green', attrs=['bold'] )
+			elif codon in self.stops:
+				codon = termcolor.colored( codon, 'white', 'on_red', attrs=['bold'] )
+			elif codon in self.non_stops:
+				codon = termcolor.colored( codon, 'blue', 'on_white', attrs=['bold'] )
+			else:
+				codon = termcolor.colored( codon, 'red', 'on_green', attrs=['bold'] )
+			coloured_sequence += codon + sep
+			i += 3
+		
+		return coloured_sequence

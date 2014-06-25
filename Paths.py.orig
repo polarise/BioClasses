@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 import sys
 from Node import *	
 from Branch import *
@@ -73,7 +72,11 @@ class Paths( object ):
 						if p not in new_paths: # otherwise, put only one copy in our new list
 							new_paths.append( p )
 		
+<<<<<<< HEAD
 		self.paths = new_paths # sub the paths with the updated list of paths
+		self.branches[ branch.root.identify() ] = branch # record this branch
+=======
+		self.paths = new_paths
 	
 	def build_paths( self ):
 		"""
@@ -82,6 +85,7 @@ class Paths( object ):
 		"""
 		for B in self.branches:
 			self.extend( B )
+>>>>>>> 1ca44c88ec547ed24ba82e7a21eb7ec283833bf6
 	
 	def get_path_sequences( self, leaf ):
 		"""
@@ -104,14 +108,15 @@ class Paths( object ):
 		
 		return self.all_path_sequences
 	
-	def get_frame_paths( self, frame ):
-		frame %= 3 # validate frame
+	def get_frame_path_sequences( self, frame ):
+		# validate frame
+		frame %= 3
 		
-		frame_paths = list()
+		frame_path_sequences = list()
 		for p in self.all_path_sequences:
 			if p[0][0] == frame:
-				frame_paths.append( p )
+				frame_path_sequences.append( p )
 			elif p[1][0] == frame:
-				frame_paths.append( p[1:] )
+				frame_path_sequences.append( p[1:] )
 		
-		return frame_paths
+		return frame_path_sequences
