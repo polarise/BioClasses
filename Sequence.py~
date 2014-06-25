@@ -320,7 +320,7 @@ class Sequence( object ):
 		orf_length = 0
 		orf_score = 0
 		for i in frame_range:
-			d, s, er = self.dist_to_stop2( i, pos )
+			d, s, er = self.dist_to_stop( i, pos )
 			if best_frame is None:
 				orf_length = d
 				orf_score = s
@@ -562,7 +562,7 @@ class BiologicalSequence( RandomFSSequence ):
 		
 		self.frameshifts.append( frame )
 		
-		l, s, er = self.dist_to_stop2( frame )
+		l, s, er = self.dist_to_stop( frame )
 		end_reached = er
 		
 		pos = l + 1

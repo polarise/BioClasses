@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 import Sequence
+from Node import *
+from Branch import *
+from Paths import *
 
 def main():
 #	s = Sequence.RandomSequence( 100 )
@@ -14,7 +17,7 @@ def main():
 	
 #	# initialise
 #	s = Sequence.RandomFSSequence( no_of_shifts=4, min_length=100, max_length=200 )
-	s = Sequence.RandomFSSequence( no_of_shifts=2, min_length=50, max_length=100 )
+	s = Sequence.RandomFSSequence( no_of_shifts=4, min_length=50, max_length=100 )
 	s.generate()
 		
 #	print s.info()
@@ -64,20 +67,38 @@ def main():
 #		print i, s.dist_to_stop( i )
 #	print s.get_best_frame( 0 )
 
-	print
-	
+# 	print
+#
 	t = Sequence.BiologicalSequence( s.sequence )
 #	print t.show_binary_codon_matrix()
+# 	for i in xrange( 3 ):
+# 		t.detect_frameshifts( i )
+# 		print "frameshifts:   ", t.frameshifts
+# #		print "frame lengths: ", map( lambda x: i + 3 + ( x - 3 )*3 + 3 - i, t.frame_lengths )
+# 		print "frame lengths: ", t.frame_lengths
+# 		print "frame scores:  ", t.frame_scores
+# 		print "overall score: ", t.overall_score
+# 		print
+
+	t.detect_frameshifts2()
+	
+	print 
 	for i in xrange( 3 ):
-		t.detect_frameshifts( i )
-		print "frameshifts:   ", t.frameshifts
-#		print "frame lengths: ", map( lambda x: i + 3 + ( x - 3 )*3 + 3 - i, t.frame_lengths )
-		print "frame lengths: ", t.frame_lengths
-		print "frame scores:  ", t.frame_scores
-		print "overall score: ", t.overall_score
-		print
-#	
-#	t.detect_frameshifts2()
+		print t.colour_frame( i, sep="" )
+	print "         |"*(( s.length )//10 )
+	stop_positions = t.get_stop_positions()
+	positions = stop_positions.keys()
+	positions.sort()
+	
+	branches = list()
+	for p in positions:
+		branches.append( (stop_positions[p],p))
+		
+	Branches = list()
+	for b in branches:
+		Branches.append( Branch( *b[0]))
+	
+	print branches
 #	
 #	r = Sequence.BiologicalSequence( "AUGACGACGACGACGACGACGUAA" )
 #	
@@ -96,18 +117,18 @@ def main():
 #	for i in xrange( 3 ):
 #		print r.dist_to_stop( i, 0 )
 	
-#	r = Sequence.RandomSequence( 400 )
-#	r.generate()
-#	print r.info()
-#	print "+%d: %s" % ( 0, r.binary_frame( 0, sep="" ))
-#	print r.dist_to_stop( 0, 0 )
-#	for i in xrange( 3 ):
-#		if i > 0:
-#			print "+%d: %s" % ( i, r.binary_frame( i, sep="" ))
-#		elif i == 0:
-#			print " %d: %s" % ( i, r.binary_frame( i, sep="" ))
-#		elif i < 0:
-#			print "%d: %s" % ( i, r.binary_frame( i, sep="" ))
+	# r = Sequence.RandomSequence( 400 )
+	# r.generate()
+	# print r.info()
+	# print "+%d: %s" % ( 0, r.binary_frame( 0, sep="" ))
+	# print r.dist_to_stop( 0, 0 )
+	# for i in xrange( 3 ):
+	# 	if i > 0:
+	# 		print "+%d: %s" % ( i, r.binary_frame( i, sep="" ))
+	# 	elif i == 0:
+	# 		print " %d: %s" % ( i, r.binary_frame( i, sep="" ))
+	# 	elif i < 0:
+	# 		print "%d: %s" % ( i, r.binary_frame( i, sep="" ))
 #		
 #	q = Sequence.BiologicalSequence( r.sequence )
 #	for i in xrange( 3 ):
