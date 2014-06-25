@@ -37,7 +37,6 @@ while len( unique_frame_sequence ) > 3:
 	position = list()
 	i = 0
 	while len( branch ) < 3:
-		print branch, position
 		if unique_frame_sequence[i][0] not in branch:
 			branch.append( unique_frame_sequence[i][0] )
 			position.append( unique_frame_sequence[i][1] )

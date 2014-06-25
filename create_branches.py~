@@ -6,7 +6,7 @@ from Branch import *
 from Paths import *
 
 #frame_sequence = [ 1, 0, 2, 2, 1, 0, 1 ]
-frame_sequence = [ 1, 0, 2, 1 ]
+frame_sequence = [ 1, 0, 2, 1, 1, 1, 1, 2, 1, 0, 0, 1, 0, 1, 1, 2, 0, 2, 2 ]
 indexes = range( len( frame_sequence ))
 
 new_frame_sequence = zip( frame_sequence, indexes )
