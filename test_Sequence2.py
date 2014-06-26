@@ -14,9 +14,12 @@ def main():
 	print s.info( "without UGA" )
 	
 	# a Sequence object
-	t = BiologicalSequence( s.sequence )
+	#t = BiologicalSequence( s.sequence )
+	#t = BiologicalSequence( "GCTGGTGGGGTAGCAGGTGTTTCTGTTGACTTGATATTATTTCCTCTGGATACCATTAAAACCAGGCTGCAGAGTCCCCAAGGATTTAGTAAGGCTGGTGGTTTTCATGGAATATATGCTGGCGTTCCTTCTGCTGCTATTGGATCCTTTCCTAATG" )
+	t = BiologicalSequence( "AAATGACGAACACAGAGGAAAGAAGAGAGGCAACTGCTGAGGTCCCCTAGGCCTTTGAGAAAACGGAGTTGTACCTTTGGCAACATAAGTGCATATCTACAAGAAAGGCGATAATGTAGACACCAAGGGAATGGGTACTGTCCAAAAAGAAATGCCTCACAAATGTCACCATGGCAAAACTAAAAGAGTCTACAAAGTTACCTAGCATGCTGTTGGCATCATTGTAAACAAACAAGTTAAGGGCAAGATTCTTGCCAAGAGAATTAATATGCATATTGGGCATATTAAGCACTCTAAGAGCCAAGATGATTTCCTGAAAGTGTGTGAAGGAAAATAACCAGCATAAAGAGGGAAGCTAAAGAGAAACCTGAAGCTGCAGCCTGTTCCACCCAGAGAAGCACACTTTGTAAGAACCAATGAAAAGGAGCCTGAGCTGCTGGAGTCTATTAACTGAATTCATGGT" )
 	#t = RandomSequence( 100 )
 	#t.generate()
+	#t.stops.append( "UGA" )	
 		
 	print 
 	print t.info()
@@ -26,14 +29,14 @@ def main():
 	
 	t.get_stop_sequence()
 	
-	print "The raw stop sequence..."
+	print "The raw stop sequence (%s)..." % len( t.stop_sequence )
 	print t.stop_sequence
 	print
 	
 	# now to create paths
 	p = Paths( t.stop_sequence )
 	
-	print "The sanitised stop sequence..."
+	print "The sanitised stop sequence (%d)..." % len( p.unique_frame_sequence )
 	print p.unique_frame_sequence
 	print
 	
@@ -44,6 +47,8 @@ def main():
 	print "View the branches..."
 	for B in p.branches:
 		print B
+	
+	#sys.exit()
 	
 	print "Build the paths..."
 	p.build_paths()
@@ -86,10 +91,11 @@ def main():
 	for i in xrange( 3 ):
 		all_paths = p.get_frame_paths( i )
 		for a in all_paths:
-			frameshifted_sequence, fragments = t.frameshift_from_path( a )
+			frameshifted_sequence, fragments, frameshift_signals = t.frameshift_from_path( a )
 			print t.path
 			print t.colour_frameshifted_sequence( sep="" )
 			print " ".join( fragments )
+			print " ".join( frameshift_signals )
 			print
 		
 	print "Actual sequence: %s" % s.info()
