@@ -25,7 +25,7 @@ class Sequence( object ):
 			self.non_stops.remove( stop )
 		
 		self.length = length
-		self.sequence = sequence
+		self.sequence = self.replace_T_with_U( sequence ) if sequence != None else sequence
 		self.binary_codon_matrix = None
 		
 		self.is_frameshift = False
@@ -33,6 +33,9 @@ class Sequence( object ):
 		
 		self.stop_positions = dict()
 		self.stop_sequence = list()
+	
+	def replace_T_with_U( self, sequence ):
+		return sequence.replace( 'T', 'U' )
 	
 	#*****************************************************************************
 	
@@ -578,7 +581,7 @@ class RandomFSSequence( Sequence ):
 class BiologicalSequence( RandomFSSequence ):
 	def __init__( self, sequence ):
 		super( BiologicalSequence, self ).__init__( sequence )
-		self.sequence = sequence
+		self.sequence = self.replace_T_with_U( sequence ) if sequence != None else sequence
 		self.length = len( sequence )
 	
 		# must have a valid binary codon matrix
@@ -587,6 +590,7 @@ class BiologicalSequence( RandomFSSequence ):
 		self.frameshifted_sequence = None
 		self.path = None
 		self.fragments = list()
+		self.frameshift_signals = list()
 		
 	#*****************************************************************************
 	
@@ -700,11 +704,13 @@ class BiologicalSequence( RandomFSSequence ):
 		
 		self.frameshifted_sequence = ""
 		self.fragments = list()
+		self.frameshift_signals = list()
 		i = 0
 		f_i = 0
 		for f,j in path:
 			self.frameshifted_sequence += self.sequence[i+(f-f_i):j]
 			self.fragments.append( self.sequence[i+(f-f_i):j] )
+			self.frameshift_signals.append( self.sequence[j-3:j+3] )
 			i = j
 			f_i = f
 			# we could factor in the last trivial frameshift...
@@ -716,7 +722,7 @@ class BiologicalSequence( RandomFSSequence ):
 		
 		self.path = path
 			
-		return self.frameshifted_sequence, self.fragments
+		return self.frameshifted_sequence, self.fragments, self.frameshift_signals
 	
 	def colour_frameshifted_sequence( self, frame=0, sep=" " ):
 		"""
