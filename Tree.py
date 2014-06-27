@@ -137,7 +137,6 @@ class Tree( object ):
 		path = list()
 		count_leaves = len( self.leaves )
 		current_node = self.root
-		left = True
 		while count_leaves > 0:
 			if current_node.left_leaf != None and current_node.right_leaf != None:
 				if not current_node.left_leaf.flag and not current_node.right_leaf.flag:
@@ -156,46 +155,6 @@ class Tree( object ):
 				path.append( this_path[::-1] )
 				current_node.flag = True
 				current_node = stack[-1]
-				stack.pop()
-						
-		
-		while count_leaves > 0:
-			#print stack
-			if current_node.left_leaf is not None and current_node.right_leaf is not None and left:
-				print "L != None && R != None && Left"
-				stack.append( current_node )
-				current_node = current_node.left_leaf # keep left
-				left = True
-			elif current_node.left_leaf is not None and current_node.right_leaf is not None and not left:
-				print "L != None && R != None && Right"
-				current_node = stack[-1].right_leaf
-				left = False				
-			elif current_node.left_leaf is None and current_node.right_leaf is None and left:
-				print "L == None && R == None && Left"
-				this_path = [ current_node ] + stack[::-1]
-				path.append( this_path[::-1] )
-				current_node = stack[-1].right_leaf
-				count_leaves -= 1
-				left = False
-			elif current_node.left_leaf is None and current_node.right_leaf is None and not left:
-				print "L == None && R == None && Right"
-				this_path = [ current_node ] + stack[::-1]
-				path.append( this_path[::-1] )
-				#while current_node == stack[-1].right_leaf:
-					#current_node = stack[-1]
-					#stack.pop()
-				current_node = stack[-1]
-				stack.pop()
-				count_leaves -= 1
-				left = False
-			#else:
-				#if left:
-					#this_path = [ current_node ] + stack[::-1]
-					#path.append( this_path[::-1] )
-					#current_node = stack[-1].right_leaf
-					#count_leaves -= 1
-					#left = False
-				#elif not left:
-					#left = True		
+				stack.pop()	
 		
 		return path
