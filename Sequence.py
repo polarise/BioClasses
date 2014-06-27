@@ -35,6 +35,8 @@ class Sequence( object ):
 		self.stop_sequence = list()
 	
 	def replace_T_with_U( self, sequence ):
+		# first replace all newlines
+		sequence = sequence.replace( "\n", "" )
 		return sequence.replace( 'T', 'U' )
 	
 	#*****************************************************************************

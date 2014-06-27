@@ -8,6 +8,7 @@ class Tree( object ):
 		self.root = None
 		self.head = list()
 		self.leaves = list()
+		self.paths = list()
 		
 	def graft( self, branch ):
 		"""
@@ -52,9 +53,8 @@ class Tree( object ):
 		tree_str += "Leaves:\n\t%s\n" % leave_str
 		return tree_str
 		
-	def get_paths( self ):
+	def get_paths( self, simplify=False ):
 		stack = list()
-		path = list()
 		count_leaves = len( self.leaves )
 		current_node = self.root
 		while count_leaves > 0:
@@ -71,14 +71,27 @@ class Tree( object ):
 					current_node.flagged = True
 					current_node = stack[-1]
 					stack.pop()
-				print "Internal node: ", stack, current_node
 			elif current_node.left_leaf is None and current_node.right_leaf is None:
 				this_path = [ current_node ] + stack[::-1]
-				path.append( this_path[::-1] )
+				self.paths.append( this_path[::-1] )
 				current_node.flagged = True
 				current_node = stack[-1]
 				stack.pop()
 				count_leaves -= 1
-				print "Terminal node: ", stack, current_node, this_path
 		
-		return path
+		if simplify:
+			return [ map( lambda x: ( x.name, x.value ), path ) for path in self.paths ]
+		else:
+			return self.paths
+	
+	def get_frame_paths( self, frame ):
+		frame %= 3 # validate frame
+		
+		frame_paths = list()
+		for p in self.paths:
+			if p[0].name == frame:
+				frame_paths.append( p )
+			elif p[1].name == frame:
+				frame_paths.append( p[1:] )
+		
+		return [ map( lambda x: ( x.name, x.value ), path ) for path in frame_paths ]
