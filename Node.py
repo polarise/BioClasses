@@ -6,8 +6,9 @@ class Node( object ):
 	def __init__( self, name, value ):
 		self.name = name
 		self.value = value
-		self.index = None
-		self.parent = None
+		self.left_leaf = None
+		self.right_leaf = None
+		self.flag = False
 	
 	def __eq__( self, node ):
 		if self.name == node.name and self.value == node.value:

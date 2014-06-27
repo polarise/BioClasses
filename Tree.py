@@ -5,7 +5,42 @@ from Node import *
 class Tree( object ):
 	def __init__( self ):
 		self.root = None
+		self.head = list()
 		self.leaves = list()
+		
+	def graft2( self, branch ):
+		"""
+		Method to graft a branch to a growing tree
+		"""
+		if self.root is None:
+			self.root = branch.root
+			self.root.left_leaf = branch.descendants[0]
+			self.root.right_leaf = branch.descendants[1]
+			self.head.append( self.root )
+		else:
+			for h in self.head:
+				# left_leaf
+				if h.left_leaf == branch.root:
+					h.left_leaf.left_leaf, h.left_leaf.right_leaf = branch.descendants
+					self.head.append( h.left_leaf )
+				# right_leaf
+				elif h.right_leaf == branch.root:
+					h.right_leaf.left_leaf, h.right_leaf.right_leaf = branch.descendants
+					self.head.append( h.right_leaf )
+			
+			# prune head: remove those without descendants
+			for h in self.head:
+				if h.left_leaf is None and h.right_leaf is None:
+					self.head.remove( h )
+		
+		# refresh leaves
+		self.leaves = list()
+		for l in self.head:
+			if l.left_leaf.left_leaf is None and l.left_leaf.right_leaf is None:
+				self.leaves.append( l.left_leaf )
+			if l.right_leaf.right_leaf is None and l.right_leaf.left_leaf is None:
+				self.leaves.append( l.right_leaf )
+		
 		
 	def graft_branch( self, branch ):
 		if self.root is None:
@@ -80,7 +115,9 @@ class Tree( object ):
 		tree_str = "Tree with %d leaves.\n" % len( self.leaves )
 		tree_str += "Root:\n\t%s\n" % str( self.root )
 		# tree_str += "Nodes:\n\t%s\n" % ", ".join( map( str, self.nodes.values()))
-		tree_str += "Leaves:\n\t%s\n" % ", ".join( map( str, self.leaves ))
+		leave_str = ", ".join( map( str, self.leaves ))
+		#tree_str += "Leaves:\n\t%s\n" % ", ".join( map( str, self.leaves ))
+		tree_str += "Leaves:\n\t%s\n" % leave_str
 		return tree_str
 		
 	def path_to_leaf( self, leaf, reverse=True ):
@@ -94,3 +131,71 @@ class Tree( object ):
 			return path[::-1]
 		else:
 			return path
+	
+	def get_paths( self ):
+		stack = list()
+		path = list()
+		count_leaves = len( self.leaves )
+		current_node = self.root
+		left = True
+		while count_leaves > 0:
+			if current_node.left_leaf != None and current_node.right_leaf != None:
+				if not current_node.left_leaf.flag and not current_node.right_leaf.flag:
+					stack.append( current_node )
+					current_node = current_node.left_leaf
+				elif current_node.left_leaf.flag and not current_node.right_leaf.flag:
+					stack.append( current_node )
+					current_node = current_node.right_leaf
+				elif not current_node.left_leaf.flag and current_node.right_leaf.flag:
+					print >> sys.stderr, "How did I get here?"
+				elif current_node.left_leaf.flag and current_node.right_leaf.flag:
+					current_node = stack[-1]
+					stack.pop()
+			elif current_node.left_leaf == None and current_node.right_leaf == None:
+				this_path = [ current_node ] + stack[::-1]
+				path.append( this_path[::-1] )
+				current_node.flag = True
+				current_node = stack[-1]
+				stack.pop()
+						
+		
+		while count_leaves > 0:
+			#print stack
+			if current_node.left_leaf is not None and current_node.right_leaf is not None and left:
+				print "L != None && R != None && Left"
+				stack.append( current_node )
+				current_node = current_node.left_leaf # keep left
+				left = True
+			elif current_node.left_leaf is not None and current_node.right_leaf is not None and not left:
+				print "L != None && R != None && Right"
+				current_node = stack[-1].right_leaf
+				left = False				
+			elif current_node.left_leaf is None and current_node.right_leaf is None and left:
+				print "L == None && R == None && Left"
+				this_path = [ current_node ] + stack[::-1]
+				path.append( this_path[::-1] )
+				current_node = stack[-1].right_leaf
+				count_leaves -= 1
+				left = False
+			elif current_node.left_leaf is None and current_node.right_leaf is None and not left:
+				print "L == None && R == None && Right"
+				this_path = [ current_node ] + stack[::-1]
+				path.append( this_path[::-1] )
+				#while current_node == stack[-1].right_leaf:
+					#current_node = stack[-1]
+					#stack.pop()
+				current_node = stack[-1]
+				stack.pop()
+				count_leaves -= 1
+				left = False
+			#else:
+				#if left:
+					#this_path = [ current_node ] + stack[::-1]
+					#path.append( this_path[::-1] )
+					#current_node = stack[-1].right_leaf
+					#count_leaves -= 1
+					#left = False
+				#elif not left:
+					#left = True		
+		
+		return path
