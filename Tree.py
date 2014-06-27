@@ -1,5 +1,6 @@
 from __future__ import division
 import sys
+import copy
 from Node import *
 
 class Tree( object ):
@@ -14,18 +15,18 @@ class Tree( object ):
 		"""
 		if self.root is None:
 			self.root = branch.root
-			self.root.left_leaf = branch.descendants[0]
-			self.root.right_leaf = branch.descendants[1]
+			self.root.left_leaf = copy.deepcopy( branch.descendants[0] )
+			self.root.right_leaf = copy.deepcopy( branch.descendants[1] )
 			self.head.append( self.root )
 		else:
 			for h in self.head:
 				# left_leaf
 				if h.left_leaf == branch.root:
-					h.left_leaf.left_leaf, h.left_leaf.right_leaf = branch.descendants
+					h.left_leaf.left_leaf, h.left_leaf.right_leaf = copy.deepcopy( branch.descendants )
 					self.head.append( h.left_leaf )
 				# right_leaf
 				elif h.right_leaf == branch.root:
-					h.right_leaf.left_leaf, h.right_leaf.right_leaf = branch.descendants
+					h.right_leaf.left_leaf, h.right_leaf.right_leaf = copy.deepcopy( branch.descendants )
 					self.head.append( h.right_leaf )
 			
 			# prune head: remove those without descendants
@@ -138,23 +139,27 @@ class Tree( object ):
 		count_leaves = len( self.leaves )
 		current_node = self.root
 		while count_leaves > 0:
-			if current_node.left_leaf != None and current_node.right_leaf != None:
-				if not current_node.left_leaf.flag and not current_node.right_leaf.flag:
+			if current_node.left_leaf is not None and current_node.right_leaf is not None:
+				if not current_node.left_leaf.flagged and not current_node.right_leaf.flagged:
 					stack.append( current_node )
 					current_node = current_node.left_leaf
-				elif current_node.left_leaf.flag and not current_node.right_leaf.flag:
+				elif current_node.left_leaf.flagged and not current_node.right_leaf.flagged:
 					stack.append( current_node )
 					current_node = current_node.right_leaf
-				elif not current_node.left_leaf.flag and current_node.right_leaf.flag:
+				elif not current_node.left_leaf.flagged and current_node.right_leaf.flagged:
 					print >> sys.stderr, "How did I get here?"
-				elif current_node.left_leaf.flag and current_node.right_leaf.flag:
+				elif current_node.left_leaf.flagged and current_node.right_leaf.flagged:
+					current_node.flagged = True
 					current_node = stack[-1]
 					stack.pop()
-			elif current_node.left_leaf == None and current_node.right_leaf == None:
+				print "Internal node: ", stack, current_node
+			elif current_node.left_leaf is None and current_node.right_leaf is None:
 				this_path = [ current_node ] + stack[::-1]
 				path.append( this_path[::-1] )
-				current_node.flag = True
+				current_node.flagged = True
 				current_node = stack[-1]
-				stack.pop()	
+				stack.pop()
+				count_leaves -= 1
+				print "Terminal node: ", stack, current_node, this_path
 		
 		return path

@@ -8,7 +8,7 @@ class Node( object ):
 		self.value = value
 		self.left_leaf = None
 		self.right_leaf = None
-		self.flag = False
+		self.flagged = False
 	
 	def __eq__( self, node ):
 		if self.name == node.name and self.value == node.value:
