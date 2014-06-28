@@ -35,6 +35,8 @@ class Sequence( object ):
 		self.stop_sequence = list()
 	
 	def replace_T_with_U( self, sequence ):
+		# first replace all newlines
+		sequence = sequence.replace( "\n", "" )
 		return sequence.replace( 'T', 'U' )
 	
 	#*****************************************************************************
@@ -722,7 +724,7 @@ class BiologicalSequence( RandomFSSequence ):
 		
 		self.path = path
 			
-		return self.frameshifted_sequence, self.fragments, self.frameshift_signals
+		return self.frameshifted_sequence, self.fragments, self.frameshift_signals[:-1]
 	
 	def colour_frameshifted_sequence( self, frame=0, sep=" " ):
 		"""

@@ -1,96 +1,97 @@
 from __future__ import division
 import sys
+import copy
 from Node import *
 
 class Tree( object ):
 	def __init__( self ):
 		self.root = None
+		self.head = list()
 		self.leaves = list()
+		self.paths = list()
 		
-	def graft_branch( self, branch ):
+	def graft( self, branch ):
+		"""
+		Method to graft a branch to a growing tree
+		"""
 		if self.root is None:
 			self.root = branch.root
-			for d in branch.descendants:
-				d.parent = branch.root
-				self.leaves.append( d )
+			self.root.left_leaf = copy.deepcopy( branch.descendants[0] )
+			self.root.right_leaf = copy.deepcopy( branch.descendants[1] )
+			self.head.append( self.root )
 		else:
-			leaves_to_remove = list()
-			print "leaves: ",self.leaves
-			for leaf in self.leaves:
-				print leaf, leaf.parent, leaf.parent.parent
-			print
-			leaves = list()
-			for leaf in self.leaves:
-				if leaf == branch.root:
-					for d in branch.descendants:
-						d.parent = leaf
-						self.leaves.append( d )
-					leaves_to_remove.append( leaf )
+			for h in self.head:
+				# left_leaf
+				if h.left_leaf == branch.root:
+					h.left_leaf.left_leaf, h.left_leaf.right_leaf = copy.deepcopy( branch.descendants )
+					self.head.append( h.left_leaf )
+				# right_leaf
+				elif h.right_leaf == branch.root:
+					h.right_leaf.left_leaf, h.right_leaf.right_leaf = copy.deepcopy( branch.descendants )
+					self.head.append( h.right_leaf )
 			
-			for l in leaves_to_remove:
-				self.leaves.remove( l )
-			
-			# self.leaves += leaves
-			print "leaves: ", self.leaves
-			for leaf in self.leaves:
-				print leaf, leaf.parent, leaf.parent.parent
+			# prune head: remove those without descendants
+			for h in self.head:
+				if h.left_leaf is None and h.right_leaf is None:
+					self.head.remove( h )
 		
-	def graft( self, node ):
- 		print >> sys.stderr, "Attempting to add %s with %s..." % ( str( node ), ", ".join( map( str, node.descendants )))
-		if self.root is None:
-			self.root = node
-			self.leaves = node.descendants
-			# self.root = Node( *node.identify())
-			# self.root.add_descendant( node.descendants )
-			# self.leaves = self.root.descendants
-		else:
-			leaves = list()
-			for leaf in self.leaves:
-				leaf.descendants = list()
-				if leaf == node:
-					leaf.add_descendant( node.descendants )
-					leaves += leaf.descendants
-					# new_node = Node( *node.identify())
-					# new_node.add_descendant( node.descendants )
-					# leaves += new_node.descendants
-					# leaf.parent.replace_descendant( leaf, new_node )
-				else:
-					leaves.append( leaf )
-			
-			self.leaves = leaves
-			print len( self.leaves )
-			
-			# this is where the problem is
-			# self.nodes[ node.identify() ] = node
-			# additional_leaves = list()
-			# leaves_to_remove = list()
-			# for leaf in self.leaves:
-			# 	if leaf == node:
-			# 		leaf.parent.replace_descendant( leaf, node )
-			# 		additional_leaves += node.descendants
-			# 		leaves_to_remove.append( leaf )
-			#
-			# for leaf in leaves_to_remove:
-			# 	self.leaves.pop( self.leaves.index( leaf ))
-			#
-			# self.leaves += additional_leaves
-	
+		# refresh leaves
+		self.leaves = list()
+		for l in self.head:
+			if l.left_leaf.left_leaf is None and l.left_leaf.right_leaf is None:
+				self.leaves.append( l.left_leaf )
+			if l.right_leaf.right_leaf is None and l.right_leaf.left_leaf is None:
+				self.leaves.append( l.right_leaf )
+		
 	def __repr__( self ):
 		# tree_str = "Tree with the %d composite nodes and %d leaves.\n" % ( len( self.nodes ), len( self.leaves ))
 		tree_str = "Tree with %d leaves.\n" % len( self.leaves )
 		tree_str += "Root:\n\t%s\n" % str( self.root )
 		# tree_str += "Nodes:\n\t%s\n" % ", ".join( map( str, self.nodes.values()))
-		tree_str += "Leaves:\n\t%s\n" % ", ".join( map( str, self.leaves ))
+		leave_str = ", ".join( map( str, self.leaves ))
+		#tree_str += "Leaves:\n\t%s\n" % ", ".join( map( str, self.leaves ))
+		tree_str += "Leaves:\n\t%s\n" % leave_str
 		return tree_str
 		
-	def path_to_leaf( self, leaf, reverse=True ):
-		path = list()
-		node = leaf
-		while node != self.root:
-			path.append( node.name )
-			node = node.parent
-		path.append( node.name )
-		if reverse:
-			return path[::-1]
+	def get_paths( self, simplify=False ):
+		stack = list()
+		count_leaves = len( self.leaves )
+		current_node = self.root
+		while count_leaves > 0:
+			if current_node.left_leaf is not None and current_node.right_leaf is not None:
+				if not current_node.left_leaf.flagged and not current_node.right_leaf.flagged:
+					stack.append( current_node )
+					current_node = current_node.left_leaf
+				elif current_node.left_leaf.flagged and not current_node.right_leaf.flagged:
+					stack.append( current_node )
+					current_node = current_node.right_leaf
+				elif not current_node.left_leaf.flagged and current_node.right_leaf.flagged:
+					print >> sys.stderr, "How did I get here?"
+				elif current_node.left_leaf.flagged and current_node.right_leaf.flagged:
+					current_node.flagged = True
+					current_node = stack[-1]
+					stack.pop()
+			elif current_node.left_leaf is None and current_node.right_leaf is None:
+				this_path = [ current_node ] + stack[::-1]
+				self.paths.append( this_path[::-1] )
+				current_node.flagged = True
+				current_node = stack[-1]
+				stack.pop()
+				count_leaves -= 1
+		
+		if simplify:
+			return [ map( lambda x: ( x.name, x.value ), path ) for path in self.paths ]
 		else:
-			return path
+			return self.paths
+	
+	def get_frame_paths( self, frame ):
+		frame %= 3 # validate frame
+		
+		frame_paths = list()
+		for p in self.paths:
+			if p[0].name == frame:
+				frame_paths.append( p )
+			elif p[1].name == frame:
+				frame_paths.append( p[1:] )
+		
+		return [ map( lambda x: ( x.name, x.value ), path ) for path in frame_paths ]
