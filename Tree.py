@@ -14,12 +14,12 @@ class Tree( object ):
 		"""
 		Method to graft a branch to a growing tree
 		"""
-		if self.root is None:
+		if self.root is None: # a new tree
 			self.root = branch.root
 			self.root.left_leaf = copy.deepcopy( branch.descendants[0] )
 			self.root.right_leaf = copy.deepcopy( branch.descendants[1] )
 			self.head.append( self.root )
-		else:
+		else: # a growing tree
 			for h in self.head:
 				# left_leaf
 				if h.left_leaf == branch.root:
@@ -79,9 +79,9 @@ class Tree( object ):
 				stack.pop()
 				count_leaves -= 1
 		
-		if simplify:
+		if simplify: # return tuples
 			return [ map( lambda x: ( x.name, x.value ), path ) for path in self.paths ]
-		else:
+		else: # return Node objects
 			return self.paths
 	
 	def get_frame_paths( self, frame ):
