@@ -13,7 +13,7 @@ class Sequence( object ):
 	"""
 	The base class
 	"""
-	def __init__( self, sequence=None, length=None, bases='ACGU', starts=[ 'AUG' ], stops=[ 'UAA', 'UAG' ] ):
+	def __init__( self, sequence=None, length=None, bases='ACGT', starts=[ 'ATG' ], stops=[ 'TAA', 'TAG' ] ):
 		"""
 		Initialise a Sequence object
 		"""
@@ -388,45 +388,32 @@ class Sequence( object ):
 			
 	#*****************************************************************************
 	
-	def filter_stop_sequence( self, min_dist ):
-		self.filtered_stop_sequence = list()
-		self.filtered_stop_sequence = [ self.stop_sequence[0] ]
-		for i in xrange( 1, len( self.stop_sequence ) - 3 ):
-			# if they are less than min_dist in the same frame...
-			if self.stop_sequence[i][1] - self.filtered_stop_sequence[-1][1] < min_dist and self.stop_sequence[i][0] == self.filtered_stop_sequence[-1][0]:
-				pass
-			else:
-				self.filtered_stop_sequence.append( self.stop_sequence[i] )
-		
-		#self.filtered_stop_sequence.append( filtered_stop_sequence[0] )
-		#for i in xrange( 1, len( filtered_stop_sequence )):
-			#if filtered_stop_sequence[i][0] == self.filtered_stop_sequence[-1][0]:
-				#continue
-			#else:
-				#self.filtered_stop_sequence.append( filtered_stop_sequence[i] )
-				
-		#self.filtered_stop_sequence += zip( range( 3 ), [ -1 ]*3 )
-		
-	#*****************************************************************************
-	
-	def sanitise_stop_sequence( self, filtered ):
+	def sanitise_stop_sequence( self ):
 		"""
 		Method to remove duplicates and append terminal frames
 		"""
-		if filtered:
-			stop_sequence = self.filtered_stop_sequence
-		else:
-			stop_sequence = self.stop_sequence
+		stop_sequence = self.stop_sequence
 		
-		self.unique_stop_sequence.append( stop_sequence[0] )
-		for i in xrange( 1, len( stop_sequence ) ):
-			if stop_sequence[i][0] == self.unique_stop_sequence[-1][0]:
-				continue
-			else:
-				self.unique_stop_sequence.append( stop_sequence[i] )
+		if len( self.stop_sequence ) > 0:
+			self.unique_stop_sequence.append( stop_sequence[0] )
+			for i in xrange( 1, len( stop_sequence ) ):
+				if stop_sequence[i][0] == self.unique_stop_sequence[-1][0]:
+					continue
+				else:
+					self.unique_stop_sequence.append( stop_sequence[i] )
+		else:
+			self.unique_stop_sequence = list()
 
 		# print unique_stop_sequence
-		self.unique_stop_sequence += zip( range( 3 ), [ -1 ]*3 )
+		if len( self.unique_stop_sequence ) == 0:
+			self.unique_stop_sequence += zip( range( 3 ), [ -1 ]*3 )
+		else:
+			if self.unique_stop_sequence[-1][0] == 0:
+				self.unique_stop_sequence += [ (1,-1), (2,-1) ]
+			elif self.unique_stop_sequence[-1][0] == 1:
+				self.unique_stop_sequence += [ (0,-1), (2,-1) ]
+			elif self.unique_stop_sequence[-1][0] == 2:
+				self.unique_stop_sequence += [ (0,-1), (1,-1) ]
 		
 	#*****************************************************************************
 	
@@ -455,42 +442,34 @@ class Sequence( object ):
 
 	#*****************************************************************************
 	
-	def build_tree( self, min_dist=0, filtered=False ):
+	def build_tree( self, verbose=False ):
 		"""
 		Method to build a tree associated with the sequence
 		"""
 		# initialise
 		self.stop_sequence = list()
-		self.filtered_stop_sequence = list()
 		self.unique_stop_sequence = list()
 		
 		# get the raw stop sequence
 		self.get_stop_sequence()
-		print >> sys.stderr, "Generated stop sequence of length %d..." % len( self.stop_sequence )
-		
-		# filter the unique stop sequence
-		self.filter_stop_sequence( min_dist )
-		print >> sys.stderr, "Generated filtered stop sequence of length %d..." % len( self.filtered_stop_sequence )
+		if verbose: print >> sys.stderr, "Generated stop sequence of length %d..." % len( self.stop_sequence )
 		
 		# sanitise the raw stop sequence
-		self.sanitise_stop_sequence( filtered )
-		if filtered:
-			print >> sys.stderr, "Generated unique stop sequence from filtered sequence of length %d..." % len( self.unique_stop_sequence )
-		else:
-			print >> sys.stderr, "Generated unique stop sequence from unfiltered sequence of length %d..." % len( self.unique_stop_sequence )
+		self.sanitise_stop_sequence()
+		if verbose: print >> sys.stderr, "Generated unique stop sequence of length %d..." % len( self.unique_stop_sequence )
 		
 		# create a list of branches
 		self.create_branches()
-		print >> sys.stderr, "Creating branches..."
+		if verbose: print >> sys.stderr, "Creating branches..."
 		
 		# graft the branches to the tree
-		print >> sys.stderr, "Grafting branches to tree..."
+		if verbose: print >> sys.stderr, "Grafting branches to tree..."
 		for B in self.branches:
-			self.tree.graft( B )
+			self.tree.graft( B, verbose )
 		
 		# get the paths
 		self.paths = self.tree.get_paths( simplify=True )
-		print >> sys.stderr, "Found %d paths in tree." % len( self.paths )
+		if verbose: print >> sys.stderr, "Found %d paths in tree." % len( self.paths )
 		
 		# get paths per frame
 		for frame in xrange( 3 ):
@@ -717,9 +696,13 @@ class RandomFSSequence( Sequence ):
 #*******************************************************************************
 	
 class BiologicalSequence( Sequence ):
-	def __init__( self, sequence ):
+	def __init__( self, sequence, DNA=False ):
 		super( BiologicalSequence, self ).__init__( sequence )
-		self.sequence = self.replace_T_with_U( sequence ) if sequence != None else sequence
+		sequence = sequence.upper()
+		if not DNA:
+			self.sequence = self.replace_T_with_U( sequence ) if sequence != None else sequence
+		else:
+			self.sequence = sequence
 		self.length = len( sequence )
 	
 		# must have a valid binary codon matrix

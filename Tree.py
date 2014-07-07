@@ -10,18 +10,18 @@ class Tree( object ):
 		self.leaves = list()
 		self.paths = list()
 		
-	def graft( self, branch ):
+	def graft( self, branch, verbose ):
 		"""
 		Method to graft a branch to a growing tree
 		"""
 		if self.root is None: # a new tree
-			print >> sys.stderr, "Placing root %s to tree..." % branch
+			if verbose: print >> sys.stderr, "Placing root %s to tree..." % branch
 			self.root = branch.root
 			self.root.left_leaf = copy.deepcopy( branch.descendants[0] )
 			self.root.right_leaf = copy.deepcopy( branch.descendants[1] )
 			self.head.append( self.root )
 		else: # a growing tree
-			print >> sys.stderr, "Grafting %s to tree with %d leaves..." % ( branch, len( self.leaves ))
+			if verbose: print >> sys.stderr, "Grafting %s to tree with %d leaves..." % ( branch, len( self.leaves ))
 			for h in self.head:
 				# left_leaf
 				if h.left_leaf == branch.root:
@@ -33,20 +33,20 @@ class Tree( object ):
 					self.head.append( h.right_leaf )
 			
 			# prune head: remove those without descendants
-			print >> sys.stderr, "Prunning head..."
+			if verbose: print >> sys.stderr, "Prunning head..."
 			for h in self.head:
 				if h.left_leaf is None and h.right_leaf is None:
 					self.head.remove( h )
 		
 		# refresh leaves
-		print >> sys.stderr, "Refreshing leaves..."
+		if verbose: print >> sys.stderr, "Refreshing leaves..."
 		self.leaves = list()
 		for l in self.head:
 			if l.left_leaf.left_leaf is None and l.left_leaf.right_leaf is None:
 				self.leaves.append( l.left_leaf )
 			if l.right_leaf.right_leaf is None and l.right_leaf.left_leaf is None:
 				self.leaves.append( l.right_leaf )
-		print >> sys.stderr
+		if verbose: print >> sys.stderr
 		
 	def __repr__( self ):
 		# tree_str = "Tree with the %d composite nodes and %d leaves.\n" % ( len( self.nodes ), len( self.leaves ))
