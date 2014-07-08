@@ -79,7 +79,7 @@ class Sequence( object ):
 		else:
 			codon = termcolor.colored( codon, 'red', 'on_green', attrs=['bold'] )
 	
-#		if frame % 3 != 0:
+		#		if frame % 3 != 0:
 		coloured_sequence += codon + sep
 	
 		# body
@@ -225,7 +225,7 @@ class Sequence( object ):
 		
 		dist = 0
 		score = 0
-#		found_stop = False
+		#		found_stop = False
 		codon = self.binary_codon_matrix[frame][pos]
 		
 		if codon <= 0:
@@ -255,37 +255,37 @@ class Sequence( object ):
 		except IndexError:
 			end_reached = True
 			
-#		while not reached_end:
-#			try:
-#				codon = self.binary_codon_matrix[frame][pos]
-#			except IndexError:
-#				break
-#			if codon > 0:
-#				dist += 1
-#				score += codon
-#			elif codon == 0:
-#				return dist, score
-#			elif codon < 0:
-#				reached_end = True
-#			pos += 1	
-		
-#		while not reached_end:
-#			try:
-#				codon = self.binary_codon_matrix[frame][pos]
-#			except IndexError:
-#				reached_end = True
-#				continue
-#			
-#			if codon == 0: # found a stop
-#				found_stop = True
-#			elif codon < 0: # found the end
-#				reached_end = True
-#			else:
-#				dist += 1
-#				pos += 1
-#				score += codon
-#			except IndexError:
-#				reached_end = True
+		# while not reached_end:
+		# 	try:
+		# 		codon = self.binary_codon_matrix[frame][pos]
+		# 	except IndexError:
+		# 		break
+		# 	if codon > 0:
+		# 		dist += 1
+		# 		score += codon
+		# 	elif codon == 0:
+		# 		return dist, score
+		# 	elif codon < 0:
+		# 		reached_end = True
+		# 	pos += 1
+		#
+		# while not reached_end:
+		# 	try:
+		# 		codon = self.binary_codon_matrix[frame][pos]
+		# 	except IndexError:
+		# 		reached_end = True
+		# 		continue
+		#
+		# 	if codon == 0: # found a stop
+		# 		found_stop = True
+		# 	elif codon < 0: # found the end
+		# 		reached_end = True
+		# 	else:
+		# 		dist += 1
+		# 		pos += 1
+		# 		score += codon
+		# 	except IndexError:
+		# 		reached_end = True
 				
 		return dist, score, end_reached
 			
@@ -334,7 +334,7 @@ class Sequence( object ):
 		min_frame = min( frames )
 		
 		# determine the frame range to search
-#		frame_range = range( min( max_frame, frame + 2 ), max( min_frame, frame - 3 ), -1 )
+		#		frame_range = range( min( max_frame, frame + 2 ), max( min_frame, frame - 3 ), -1 )
 		frame_range = range( 3 )
 		frame_range.remove( frame ) # exclude the current frame
 		
@@ -553,7 +553,7 @@ class RandomFSSequence( Sequence ):
 		final_length = len( sequence ) + length
 		while len( sequence ) < final_length:
 			sequence += random.choice( self.non_stops )
-#		print len( sequence ) - final_length
+			#		print len( sequence ) - final_length
 		return sequence
 		
 	#*****************************************************************************
@@ -872,7 +872,7 @@ class BiologicalSequence( Sequence ):
 		else:
 			codon = termcolor.colored( codon, 'red', 'on_green', attrs=['bold'] )
 	
-#		if frame % 3 != 0:
+			#		if frame % 3 != 0:
 		coloured_sequence += codon + sep
 	
 		# body
