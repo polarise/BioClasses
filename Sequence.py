@@ -91,8 +91,8 @@ class Sequence( object ):
 	#*****************************************************************************
 	
 	def __repr__( self ):
-		sequence = list()
 		if self.as_codons:
+			sequence = list()
 			for i in xrange( 0, len( self.sequence ), 3 ):
 				sequence.append( self.sequence[i:i+3] )
 			return " ".join( sequence )
