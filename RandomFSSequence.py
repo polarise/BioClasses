@@ -11,70 +11,90 @@ class RandomFSSequence( Sequence ):
 		self.min_length = min_length
 		self.max_length = max_length
 	
+	#***************************************************************************** 
+	
+	def __repr__( self ):
+		if self.sequence is None:
+			return "Blank RandomFSSeqence object."
+		else:
+			return super( RandomFSSequence, self ).__repr__()
+	
 	#*****************************************************************************
 	
 	def info( self, comment="" ):
 		return "Frameshift sequence (%s) of lengths (%s) and total length of %d: %s" % ( ",".join( map( str, self.frameshifts )), ",".join( map( str, self.frame_lengths )), self.length, comment )
 	
 	#*****************************************************************************
-
-	def _initialise_sequence( self, frame ):
+	
+	def set_params( self, no_of_shifts, min_length, max_length ):
+		self.no_of_shifts = no_of_shifts # a list of length greater than two of ints
+		self.min_length = min_length
+		self.max_length = max_length
+		
+	#*****************************************************************************
+	
+	@staticmethod
+	def _initialise_sequence( frame, bases, starts, stops ):
 		"""
 		Internal method to initialise a frameshift sequence
 		"""
 		# fix frame to 0-2
 		frame = frame % 3
 		if frame == 0:
-			return random.choice( self.starts )
+			return random.choice( starts )
 		elif frame == 1:
-			return random.choice( 'ACGU' ) + random.choice( self.starts )
+			return random.choice( bases ) + random.choice( starts )
 		elif frame == 2:
-			return random.choice( 'ACGU' ) + random.choice( 'ACGU' ) + \
-			random.choice( self.starts )
+			return random.choice( bases ) + random.choice( bases ) + \
+			random.choice( starts )
 	
 	#*****************************************************************************
-			
-	def _generate_nonstop_codon( self, sequence, length ):
+	
+	@staticmethod
+	def _generate_nonstop_codon( sequence, length, non_stops ):
 		"""
 		Internal method to generate a non-stop codon
 		"""
 		final_length = len( sequence ) + length
 		while len( sequence ) < final_length:
-			sequence += random.choice( self.non_stops )
+			sequence += random.choice( non_stops )
 			#		print len( sequence ) - final_length
 		return sequence
 		
 	#*****************************************************************************
 	
-	def _generate_stop_codon( self, sequence ):
+	@staticmethod
+	def _generate_stop_codon( sequence, stops ):
 		"""
 		Internal method to generate a stop codon
 		"""
-		return sequence + random.choice( self.stops )
+		return sequence + random.choice( stops )
 	
 	#*****************************************************************************
 	
-	def _change_frame( self, sequence, frame ):
+	@staticmethod
+	def _change_frame( sequence, frame, bases, starts, stops ):
 		"""
 		Internal method to change frame by frame
 		"""
 		# check whether the sequence is terminated by a stop; raise error
 		the_stop = sequence[-3:]
 		try:
-			assert the_stop in self.stops
+			assert the_stop in stops
 		except:
 			raise ValueError( "Terminal sequence not stop: %s" % sequence[-3:] )
 	
 		if frame == 1 or frame == -2:
-			sequence += random.choice( 'ACGU' )
+			sequence += random.choice( bases )
 		elif frame == 2 or frame == -1:
-			sequence += random.choice( 'ACGU' ) + random.choice( 'ACGU' )
+			sequence += random.choice( bases ) + random.choice( bases )
 	
 		return sequence
 	
 	#*****************************************************************************
-
-	def _generate_frameshifts( self, no_of_shifts ):
+	
+	@staticmethod
+	def _generate_frameshifts( no_of_shifts ):
 		"""
 		Internal method to generate a valid frameshift sequence
 		"""
@@ -91,7 +111,8 @@ class RandomFSSequence( Sequence ):
 	
 	#*****************************************************************************
 	
-	def _generate_frame_lengths( self, no_of_shifts, min_length, max_length ):
+	@staticmethod
+	def _generate_frame_lengths( no_of_shifts, min_length, max_length ):
 		"""
 		Internal method to generate a frame_lengths to use
 		"""
@@ -158,24 +179,24 @@ class RandomFSSequence( Sequence ):
 		for i in xrange( len( self.frameshifts )-1 ): # exclude the last frame shift
 			if i == 0: 
 				# this is the beginning
-				frameshift_sequence = self._initialise_sequence( self.frameshifts[i] )
+				frameshift_sequence = self._initialise_sequence( self.frameshifts[i], self.bases, self.starts, self.stops )
 				# generate Ni non-stop codons
-				frameshift_sequence = self._generate_nonstop_codon( frameshift_sequence, self.frame_lengths[i] )
+				frameshift_sequence = self._generate_nonstop_codon( frameshift_sequence, self.frame_lengths[i], self.non_stops )
 				# add a stop: terminate( sequence )
-				frameshift_sequence = self._generate_stop_codon( frameshift_sequence )
+				frameshift_sequence = self._generate_stop_codon( frameshift_sequence, self.stops )
 				change = self.frameshifts[i+1] - self.frameshifts[i]
 				# change frame: change_frame( sequence, from, to )
-				frameshift_sequence = self._change_frame( frameshift_sequence, change )
+				frameshift_sequence = self._change_frame( frameshift_sequence, change, self.bases, self.starts, self.stops )
 				continue
 			else: # middle of sequence
-				frameshift_sequence = self._generate_nonstop_codon( frameshift_sequence, self.frame_lengths[i] )
-				frameshift_sequence = self._generate_stop_codon( frameshift_sequence )
+				frameshift_sequence = self._generate_nonstop_codon( frameshift_sequence, self.frame_lengths[i], self.non_stops )
+				frameshift_sequence = self._generate_stop_codon( frameshift_sequence, self.stops )
 				change = self.frameshifts[i+1] - self.frameshifts[i]
-				frameshift_sequence = self._change_frame( frameshift_sequence, change )
+				frameshift_sequence = self._change_frame( frameshift_sequence, change, self.bases, self.starts, self.stops )
 	
 		# the last frame
-		frameshift_sequence = self._generate_nonstop_codon( frameshift_sequence, self.frame_lengths[i+1] )
-		frameshift_sequence = self._generate_stop_codon( frameshift_sequence )
+		frameshift_sequence = self._generate_nonstop_codon( frameshift_sequence, self.frame_lengths[i+1], self.non_stops )
+		frameshift_sequence = self._generate_stop_codon( frameshift_sequence, self.stops )
 		
 		# make the sequence
 		self.sequence = frameshift_sequence
