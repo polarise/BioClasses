@@ -4,10 +4,12 @@ import sys
 import itertools
 import random
 import math
+import copy
 import termcolor
 from Node import *
 from Branch import *
 from Tree import *
+from FrameshiftSequence import *
 
 class Sequence( object ):
 	"""
@@ -27,8 +29,13 @@ class Sequence( object ):
 		for stop in self.stops:
 			self.non_stops.remove( stop )
 		
-		self.length = length
-		self.sequence = sequence
+		if sequence is None:
+			self.sequence = sequence
+			self.length = length
+		else:
+			self.sequence = sequence.upper()
+			self.length = len( sequence )
+		
 		self.binary_codon_matrix = None
 		
 		self.is_frameshift = False
@@ -39,12 +46,15 @@ class Sequence( object ):
 		self.filtered_stop_sequence = list()
 		self.unique_stop_sequence = list()
 		
-		self.tree = Tree() 
+		self.tree = None
 		self.branches = list()
 		
 		self.paths = list() # all tree paths
+		self.no_paths = None
 		self.frame_paths = dict() # all paths per frame
 		self.sorted_frame_paths = dict() # sorted by length
+		
+		self.frameshift_sequences = dict()
 	
 	#*****************************************************************************
 	
@@ -216,7 +226,7 @@ class Sequence( object ):
 	#*****************************************************************************
 	
 	def get_stop_sequence( self ):
-		self.stop_position = list()
+		self.stop_positions = list()
 		self.stop_positions = self.get_stop_positions()
 		positions = self.stop_positions.keys()
 		positions.sort()
@@ -230,7 +240,7 @@ class Sequence( object ):
 		"""
 		Method to remove duplicates and append terminal frames
 		"""
-		stop_sequence = self.stop_sequence
+		stop_sequence = copy.copy( self.stop_sequence )
 		
 		if len( self.stop_sequence ) > 0:
 			self.unique_stop_sequence.append( stop_sequence[0] )
@@ -261,7 +271,7 @@ class Sequence( object ):
 		"""
 		branches = list()
 		positions = list()
-		unique_stop_sequence = self.unique_stop_sequence
+		unique_stop_sequence = copy.copy( self.unique_stop_sequence )
 		while len( unique_stop_sequence ) > 3:
 			branch = list()
 			position = list()
@@ -288,6 +298,18 @@ class Sequence( object ):
 		self.stop_sequence = list()
 		self.unique_stop_sequence = list()
 		
+		# initialise the tree and branches
+		self.tree = Tree()
+		self.branches = list()
+		
+		# initialise other attributes
+		self.paths = list() # all tree paths
+		self.no_paths = None
+		self.frame_paths = dict() # all paths per frame
+		self.sorted_frame_paths = dict() # sorted by length
+		
+		self.frameshift_sequences = dict()
+		
 		# get the raw stop sequence
 		self.get_stop_sequence()
 		if verbose: print >> sys.stderr, "Generated stop sequence of length %d..." % len( self.stop_sequence )
@@ -307,7 +329,8 @@ class Sequence( object ):
 		
 		# get the paths
 		self.paths = self.tree.get_paths( simplify=True )
-		if verbose: print >> sys.stderr, "Found %d paths in tree." % len( self.paths )
+		self.no_paths = len( self.paths )
+		if verbose: print >> sys.stderr, "Found %d paths in tree." % self.no_paths
 		
 		# get paths per frame
 		for frame in xrange( 3 ):
@@ -331,207 +354,8 @@ class Sequence( object ):
 				self.sorted_frame_paths[a] = sorted_frame_paths[a]
 			else:
 				self.sorted_frame_paths[a] += sorted_frame_paths[a]
-	
 		
-#*******************************************************************************
-
-
-	
-#*******************************************************************************
-	
-class BiologicalSequence( Sequence ):
-	def __init__( self, sequence, DNA=False ):
-		super( BiologicalSequence, self ).__init__( sequence )
-		sequence = sequence.upper()
-		if not DNA:
-			self.sequence = self.replace_T_with_U( sequence ) if sequence != None else sequence
-		else:
-			self.sequence = sequence
-		self.length = len( sequence )
-	
-		# must have a valid binary codon matrix
-		self.set_binary_codon_matrix( weighted_start=True )
-		
-		self.frameshifted_sequence = None
-		self.path = None
-		self.fragments = list()
-		self.frameshift_signals = list()
-		
-		#self.is_frameshift = False
-		#self.frameshifts = frameshifts
-		#self.frame_lengths = frame_lengths
-		#self.no_of_shifts = no_of_shifts
-		#self.min_length = min_length
-		#self.max_length = max_length
-		
-	#*****************************************************************************
-	
-	def info( self, comment="" ):
-		return "Unknown biological sequence of length %s bases." % self.length
-	
-	#*****************************************************************************
-	
-	#def detect_frameshifts( self, frame=0 ):
-		#self.frameshifts = list() # initialise
-		#self.frame_lengths = list()
-		#self.frame_scores = list()
-		#self.overall_score = None
-		
-		#self.frameshifts.append( frame )
-		
-		#l, s, er = self.dist_to_stop( frame )
-		#end_reached = er
-		
-		#pos = l + 1
-		#score = s
-		
-		#self.frame_lengths.append( l )
-		#self.frame_scores.append( s )
-		
-		#print "frame\tpos\tscore\tf\tl\ts\tend?"
-		#print "%d\t%d\t%d\t%s\t%d\t%d\t%s" % ( frame, pos, score, frame, l, s, end_reached )
-
-		#while not end_reached:
-			#f, l, s, er = self.get_best_frame( frame, pos )	# frame, length, score
-			#end_reached = er
-			#frame = f
-			#pos += l + 1
-			#score += s
-			#print "%d\t%d\t%d\t%s\t%d\t%d\t%s" % ( frame, pos, score, frame, l, s, end_reached )
-			#self.frameshifts.append( f )
-			#self.frame_lengths.append( l )
-			#self.frame_scores.append( s )
-		
-		#self.no_of_shifts = len( self.frameshifts ) - 1
-		#self.overall_score = sum( self.frame_scores )
-		
-	##*****************************************************************************	
-	
-	#def detect_frameshifts2( self ):
-		#"""
-		#Alternative algorithm to detect frameshifts: the sequence with the longest
-		#frames corresponds with the a sequence defined as follows:
-		#- the first frame is the third 
-		#- every other frame except the current frame and the next frame i.e. every second unique frame
-		#"""
-		#stop_pos = dict()
-		#frame_scores = dict()
-		#for frame in xrange( 3 ):
-			#pos = 0
-			#score = 0
-			#matrix_length = len( self.binary_codon_matrix[frame] )
-			#end_reached = False
-##			while pos < matrix_length:
-			#while not end_reached:
-				#d, s, er = self.dist_to_stop( frame, pos )
-				#end_reached = er
-				#pos += d + 1
-				#score += s
-				#if pos not in stop_pos:
-					#stop_pos[pos] = [ frame ]
-				#else:
-					#stop_pos[pos] += [ frame ]
-				#frame_scores[frame] = score
-		
-		#print stop_pos
-		#print frame_scores
-		
-		#keys = stop_pos.keys()
-		#keys.sort()
-		
-		#stop_sequence = list()
-		#for k in keys:
-			#stop_sequence.append( stop_pos[k][0] )
-			
-		#print stop_sequence
-		
-		#frameshifts = list()
-		#ignore = set()
-		#for s in stop_sequence:
-			#if len( ignore ) < 2:
-				#ignore.add( s )
-			#elif s in ignore:
-				#pass
-			#else:
-				#frameshifts.append( s )
-				#ignore = set()
-				#ignore.add( s )
-		
-		#print frameshifts
-		
-	#*****************************************************************************
-	
-	def frameshift_from_path( self, path ):
-		"""
-		"""
-		# first get all frame of self.sequence
-		sequence_in_frames = dict()
-		for i in xrange( 3 ):
-			sequence_in_frames[i] = self.sequence[i:]
-		
-		#for f in sequence_in_frames:
-			#print f, ":", sequence_in_frames[f]
-		#print "    " + "         |"*(( self.length )//10 )
-		#print
-		
-		self.frameshifted_sequence = ""
-		self.fragments = list()
-		self.frameshift_signals = list()
-		i = 0
-		f_i = 0
-		for f,j in path:
-			self.frameshifted_sequence += self.sequence[i+(f-f_i):j]
-			self.fragments.append( self.sequence[i+(f-f_i):j] )
-			self.frameshift_signals.append( self.sequence[j-3:j+3] )
-			i = j
-			f_i = f
-			# we could factor in the last trivial frameshift...
-		self.frameshifted_sequence += self.sequence[-1]
-		self.fragments[-1] += self.sequence[-1]
-			# or (preferably) allow the last fragment to run until the end
-			#self.frameshifted_sequence += self.sequence[j:]
-			#self.fragments[-1] += self.sequence[-1]
-		
-		self.path = path
-			
-		return self.frameshifted_sequence, self.fragments, self.frameshift_signals[:-1]
-	
-	def colour_frameshifted_sequence( self, frame=0, sep=" " ):
-		"""
-		Method to return in colour for frame frame
-		"""
-		# ensure that you have a valid frame; no need for errorcheck
-		frame = frame % 3
-		
-		coloured_sequence = ""
-	
-		# front
-		codon = self.frameshifted_sequence[0:frame]
-		if codon in self.starts:
-			codon = termcolor.colored( codon, 'yellow', 'on_yellow', attrs=['bold'] )
-		elif codon in self.stops:
-			codon = termcolor.colored( codon, 'white', 'on_red', attrs=['bold'] )
-		elif codon in self.non_stops:
-			codon = termcolor.colored( codon, 'blue', 'on_white', attrs=['bold'] )
-		else:
-			codon = termcolor.colored( codon, 'red', 'on_green', attrs=['bold'] )
-	
-			#		if frame % 3 != 0:
-		coloured_sequence += codon + sep
-	
-		# body
-		i = frame
-		while i < len( self.frameshifted_sequence ):
-			codon = self.frameshifted_sequence[i:i+3]
-			if codon in self.starts:
-				codon = termcolor.colored( codon, 'yellow', 'on_green', attrs=['bold'] )
-			elif codon in self.stops:
-				codon = termcolor.colored( codon, 'white', 'on_red', attrs=['bold'] )
-			elif codon in self.non_stops:
-				codon = termcolor.colored( codon, 'blue', 'on_white', attrs=['bold'] )
-			else:
-				codon = termcolor.colored( codon, 'red', 'on_green', attrs=['bold'] )
-			coloured_sequence += codon + sep
-			i += 3
-		
-		return coloured_sequence
+		# get all frameshift sequences
+		for frame in self.frame_paths:
+			for path in self.frame_paths[frame]:
+				self.frameshift_sequences[tuple(path)] = FrameshiftSequence( self.sequence, path )
