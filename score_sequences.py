@@ -68,7 +68,7 @@ def main( fasta_file ):
 		
 		if signals == "":
 			signals = "None"
-		print "\t".join( map( str, [ frames, signals, length, orf_length, frame_count, actual_frame_count, loglik, start_pos, score, actual_score ] ))
+		print "\t".join( map( str, [ fasta_file, frames, signals, length, orf_length, frame_count, actual_frame_count, loglik, start_pos, score, actual_score ] ))
 
 if __name__ == "__main__":
 	try:

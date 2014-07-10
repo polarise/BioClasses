@@ -54,7 +54,9 @@ class Sequence( object ):
 		self.frame_paths = dict() # all paths per frame
 		self.sorted_frame_paths = dict() # sorted by length
 		
-		self.frameshift_sequences = dict()
+		# diction of FrameshiftSequence objects
+		# keys are path tuples
+		self.frameshift_sequences = dict() 
 	
 	#*****************************************************************************
 	

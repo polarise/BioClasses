@@ -3,11 +3,15 @@ from __future__ import division
 import sys
 
 class AminoAcid( object ):
-	def __init__( self, name, lsymbol, ssymbol, codons ):
+	def __init__( self, name, lsymbol, ssymbol, codons, as_RNA=True ):
 		self.name = name # full name e.g. 'Phelinalanine'
 		self.lsymbol = lsymbol # long symbol e.g. 'Phe'
 		self.ssymbol = ssymbol # short symbol e.g. 'F'
 		self.codons = codons.split( "," ) # list
+		if as_RNA:
+			pass
+		else:
+			self.codons = map( lambda x: x.replace( "U", "T" ), self.codons )
 		self.codon_counts = dict()
 		self.norm_counts = dict()
 	
