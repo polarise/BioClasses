@@ -16,8 +16,10 @@ class AminoAcid( object ):
 		self.norm_counts = dict()
 	
 	def __repr__( self ):
-		return "Amino acid: %s (%s/%s)\nCodons    : %s" % ( self.name, \
-			self.lsymbol, self.ssymbol, ",".join( self.codons ))
+		count_str = map( str, [ (c,self.codon_counts[c]) for c in self.codon_counts ])
+		norm_str = map( str, [ (n,self.norm_counts[n]) for n in self.norm_counts ])
+		return "Amino acid: %s (%s/%s)\nCodons    : %s\nNorm'd    : %s\nCounts    : %s" % ( self.name, \
+			self.lsymbol, self.ssymbol, ",".join( self.codons ), ",".join( norm_str ), ",".join( count_str ))
 		
 	def count_codon( self, codon ):
 		if codon not in self.codon_counts:
@@ -28,4 +30,7 @@ class AminoAcid( object ):
 	def normalise( self ):
 		total_count = sum( self.codon_counts.values() )
 		for c in self.codon_counts:
-			self.norm_counts[c] = self.codon_counts[c]/total_counts
+			self.norm_counts[c] = self.codon_counts[c]/total_count
+	
+	def get_norm_count( self, codon ):
+		return self.norm_counts[codon]
