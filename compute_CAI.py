@@ -51,7 +51,7 @@ def main( fn, fastafile ):
 		last = orf_frame[seq_name].last
 		i = frame
 		start = None
-		while i < len( sequence ) - 3:
+		while i <= len( sequence ) - 3:
 			codon = sequence[i:i+3]
 			if codon == "ATG":
 				start = i
@@ -60,7 +60,7 @@ def main( fn, fastafile ):
 				i += 3
 		
 		if start == None:
-			print "Missing ATG in frame %d in sequence %s" % ( frame, seq_name )
+			print >> sys.stderr, "Missing ATG in frame %d in sequence %s" % ( frame, seq_name )
 			total += 1
 			nok_count += 1
 			continue
@@ -79,19 +79,22 @@ def main( fn, fastafile ):
 		# make sure it's in the first coding frame
 		cds = sequence[start:last+1]
 		
+		print ">" + seq_record.id
+		print cds
+		
 		# from the first codon to the end read in the codons as follows
-		for m in xrange( len( cds ) - 3 ):
-			codon = cds[m:m+3]
-			# get the amino acid name from codon_dict
-			aa = codon_dict[codon]
-			# then get the amino acid and add the codon
-			genetic_code[aa].count_codon( codon )
+		#for m in xrange( len( cds ) - 3 ):
+			#codon = cds[m:m+3]
+			## get the amino acid name from codon_dict
+			#aa = codon_dict[codon]
+			## then get the amino acid and add the codon
+			#genetic_code[aa].count_codon( codon )
 	
 	# normalise each amino acid
-	for g in genetic_code:
-		genetic_code[g].normalise()
-		print genetic_code[g]
-		print
+	#for g in genetic_code:
+		#genetic_code[g].normalise()
+		#print genetic_code[g]
+		#print
 	
 
 if __name__ == "__main__":

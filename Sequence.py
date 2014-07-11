@@ -10,6 +10,7 @@ from Node import *
 from Branch import *
 from Tree import *
 from FrameshiftSequence import *
+from GeneticCode import *
 
 class Sequence( object ):
 	"""
