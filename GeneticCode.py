@@ -8,6 +8,7 @@ class GeneticCode( object ):
 		self.gc_file = gc_file
 		self.codons = dict()
 		self.amino_acids = dict()
+		self.has_CAI = False
 		with open( self.gc_file ) as f:
 			for row in f:
 				l = row.strip( "\n" ).split( "\t" )
@@ -37,6 +38,8 @@ class GeneticCode( object ):
 		
 		for g in self.amino_acids:
 			self.amino_acids[g].normalise()
+		
+		self.has_CAI = True
 	
 	def write_CAI_table( self, CAI_file ):
 		aa_names = self.amino_acids.keys()
@@ -62,7 +65,16 @@ class GeneticCode( object ):
 		
 		for aa in self.amino_acids:
 			self.amino_acids[aa].normalise()
-				
+		
+		self.has_CAI = True
+	
+	def get_wij( self, codon ):
+		codon = codon.replace( "T", "U" )
+		aa = self.codons[codon]
+		if self.has_CAI:
+			return self.amino_acids[aa].wij[codon]
+		else:
+			return None
 
 	
 	

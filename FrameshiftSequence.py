@@ -6,6 +6,27 @@ class FrameshiftSequence( object ):
 		self.frameshifted_sequence, self.fragments, self.signals = self.frameshift_from_path( sequence, path )
 		self.length = len( self.frameshifted_sequence )
 		self.frameshift_count = len( self.path ) - 1
+		self.CAI = None
+	
+	def __repr__( self ):
+		return """\
+Path:                  %s
+Frameshifted sequence: %s
+Fragments:             %s
+Signals:               %s
+Length:                %s
+No. of frameshifts:    %s
+CAI:                   %s"""\
+	% ( ",".join( map( str, self.path )), \
+		"...".join([ self.frameshifted_sequence[:20], \
+			self.frameshifted_sequence[-20:] ]), ", ".join( self.fragments ),\
+				",".join( self.signals ), self.length, self.frameshift_count, self.CAI )
+	
+	def repr_as_row( self, sep="\t" ):
+		return sep.join([ "...".join([ self.frameshifted_sequence[:20], 
+			self.frameshifted_sequence[-20:] ]), str( self.length ), \
+				str( self.frameshift_count ), str( self.CAI ), \
+					",".join( map( str, self.path )), ",".join( self.signals )])
 			
 	def frameshift_from_path( self, sequence, path ):
 		"""

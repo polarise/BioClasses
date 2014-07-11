@@ -37,6 +37,8 @@ class Sequence( object ):
 			self.sequence = sequence.upper()
 			self.length = len( sequence )
 		
+		self.CAI_score = None
+		
 		self.binary_codon_matrix = None
 		
 		self.is_frameshift = False
@@ -57,7 +59,22 @@ class Sequence( object ):
 		
 		# diction of FrameshiftSequence objects
 		# keys are path tuples
-		self.frameshift_sequences = dict() 
+		self.frameshift_sequences = dict()			
+		
+		# translation
+		self.genetic_code = None
+	
+	#*****************************************************************************
+	
+	def truncate( self, start_from="ATG" ):
+		start_pos = self.sequence.find( start_from )
+		if start_pos < 0:
+			print >> sys.stderr, """Warning: unable to find %s signal... \
+using whole sequence.""" % start_from
+		else:
+			print >> sys.stderr, """Found start (%s) from position %d... \
+truncating sequence""" % ( start_from, start_pos )
+			self.sequence = self.sequence[start_pos:]
 	
 	#*****************************************************************************
 	
@@ -362,3 +379,45 @@ class Sequence( object ):
 		for frame in self.frame_paths:
 			for path in self.frame_paths[frame]:
 				self.frameshift_sequences[tuple(path)] = FrameshiftSequence( self.sequence, path )
+	
+	def set_genetic_code( self, genetic_code ):
+		self.genetic_code = genetic_code
+		
+	def translate( self, genetic_code=None ):
+		if genetic_code is None and self.genetic_code is None:
+			raise ValueError( """Translation cannot proceed without a valid \
+				genetic code.""" )
+	
+	def estimate_CAI( self ):
+		score = 0
+		i = 0
+		length = 0
+		while i <= len( self.sequence ) - 3:
+			codon = self.sequence[i:i+3]
+			if len( codon ) < 3:
+				print >> sys.stderr, "Warning: sequence end is not a codon: %s" % codon
+				break
+			score += math.log( self.genetic_code.get_wij( codon ))
+			length += 1
+			i += 3
+		self.CAI_score = math.exp( score/length )
+		
+		return self.CAI_score
+	
+	def estimate_frameshift_CAI( self ):
+		for fs in self.frameshift_sequences:
+			F = self.frameshift_sequences[fs]
+			score = 0
+			i = 0
+			length = 0
+			while i <= len( F.frameshifted_sequence ) - 3:
+				codon = F.frameshifted_sequence[i:i+3]
+				if len( codon ) < 3:
+					print >> sys.stderr, "Warning: sequence end is not a codon: %s" % codon
+					break
+				score += math.log( self.genetic_code.get_wij( codon ))
+				length += 1
+				i += 3
+			F.CAI = math.exp( score/length )
+		
+			
