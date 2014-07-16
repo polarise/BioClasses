@@ -10,6 +10,8 @@ class FrameshiftSequence( object ):
 		self.length = len( self.frameshifted_sequence )
 		self.frameshift_count = len( self.path ) - 1
 		self.CAI = None
+		self.likelihood = None
+		self.graded_likelihood = None
 	
 	def __repr__( self ):
 		return """\

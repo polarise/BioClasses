@@ -413,63 +413,62 @@ truncating sequence""" % ( start_from, start_pos )
 	#*****************************************************************************
 	
 	def estimate_CAI( self ):
-		score = 0
-		i = 0
-		length = 0
-		while i <= len( self.sequence ) - 3:
-			codon = self.sequence[i:i+3]
-			if len( codon ) < 3:
-				print >> sys.stderr, "Warning: sequence end is not a codon: %s" % codon
-				break
-			score += math.log( self.genetic_code.get_wij( codon ))
-			length += 1
-			i += 3
-		self.CAI_score = math.exp( score/length )
-		
-		return self.CAI_score
-	
-	#*****************************************************************************
-	
-	def estimate_frameshift_CAI( self ):
-		for fs in self.frameshift_sequences:
-			F = self.frameshift_sequences[fs]
+		if self.genetic_code is None:
+			raise ValueError( "Unable to compute CAI without genetic code. First run 's.set_genetic_code( G )'." )
+		else:
 			score = 0
 			i = 0
 			length = 0
-			while i <= len( F.frameshifted_sequence ) - 3:
-				codon = F.frameshifted_sequence[i:i+3]
+			while i <= len( self.sequence ) - 3:
+				codon = self.sequence[i:i+3]
 				if len( codon ) < 3:
 					print >> sys.stderr, "Warning: sequence end is not a codon: %s" % codon
 					break
 				score += math.log( self.genetic_code.get_wij( codon ))
 				length += 1
 				i += 3
-			F.CAI = math.exp( score/length )
+			self.CAI_score = math.exp( score/length )
+		
+			return self.CAI_score
 	
 	#*****************************************************************************
 	
-	def estimate_overall_likelihood( self, loglik=False ):
+	def estimate_frameshift_CAI( self ):
+		if self.genetic_code is None:
+			raise ValueError( "Unable to compute CAI without genetic code. First run 's.set_genetic_code( G )'." )
+		else:
+			for fs in self.frameshift_sequences:
+				F = self.frameshift_sequences[fs]
+				score = 0
+				i = 0
+				length = 0
+				while i <= len( F.frameshifted_sequence ) - 3:
+					codon = F.frameshifted_sequence[i:i+3]
+					if len( codon ) < 3:
+						print >> sys.stderr, "Warning: sequence end is not a codon: %s" % codon
+						break
+					score += math.log( self.genetic_code.get_wij( codon ))
+					length += 1
+					i += 3
+				F.CAI = math.exp( score/length )
+	
+	#*****************************************************************************
+	
+	def estimate_likelihood( self, loglik=True ):
 		if self.transition_matrix is None:
 			raise ValueError( "Missing transition matrix. First run 's.set_transition_matrix( TM )'." )
 		else:
 			self.likelihood = self.transition_matrix.likelihood( self.sequence, loglik=loglik )
-			return self.likelihood
-		
+			self.graded_likelihood = self.transition_matrix.graded_likelihood( self.sequence, loglik=loglik )
+			return self.likelihood, self.graded_likelihood
+			
 	#*****************************************************************************
 	
-	def compute_graded_likelihood( self, loglik=False ):
+	def estimate_frameshift_likelihood( self, loglik=True ):
 		if self.transition_matrix is None:
 			raise ValueError( "Missing transition matrix. First run 's.set_transition_matrix( TM )'." )
 		else:
-			self.graded_likelihood = list()
-			likelihood = 0
-			i = 0
-			while i <= len( self.sequence ) - 6:
-				C1 = self.sequence[i:i+3]
-				C2 = self.sequence[i+3:i+6]
-				likelihood += self.transition_matrix.probability( C1, C2, loglik=loglik )
-				self.graded_likelihood.append( likelihood )
-				i += 3
-			return self.graded_likehoood
-			
-			
+			for fs in self.frameshift_sequences:
+				F = self.frameshift_sequences[fs]
+				F.likelihood = self.transition_matrix.likelihood( F.frameshifted_sequence, loglik=loglik )
+				F.graded_likelihood = self.transition_matrix.graded_likelihood( F.frameshifted_sequence, loglik=loglik )

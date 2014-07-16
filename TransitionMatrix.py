@@ -59,20 +59,20 @@ class TransitionMatrix( object ):
 			for next_codon in self.transition_counts[codon]:
 				self.transition_probabilities[codon][next_codon] = self.transition_counts[codon][next_codon]/total
 	
-	def probability( self, C1, C2, loglik=False, logbase=math.exp( 1 ) ): # probability of C2 given C1 i.e. C1->C2
+	def probability( self, C1, C2, loglik=True, logbase=math.exp( 1 ) ): # probability of C2 given C1 i.e. C1->C2
 		if loglik:
 			return math.log( self.transition_probabilities[C1][C2], logbase )
 		else:
 			return self.transition_probabilities[C1][C2]
 	
-	def likelihood( self, sequence, loglik=False ): # sequence likelihood
+	def likelihood( self, sequence, loglik=True ): # sequence likelihood
 		if loglik:
 			loglikelihood = 0
 			i = 0
 			while i <= len( sequence ) - 6:
 				codon = sequence[i:i+3]
 				next_codon = sequence[i+3:i+6]
-				loglikelihood += self.probability( codon, next_codon, loglik=True )
+				loglikelihood += self.probability( codon, next_codon, loglik )
 				i += 3
 			return loglikelihood
 		else:
@@ -81,9 +81,33 @@ class TransitionMatrix( object ):
 			while i <= len( sequence ) - 6:
 				codon = sequence[i:i+3]
 				next_codon = sequence[i+3:i+6]
-				likelihood *= self.probability( codon, next_codon )
+				likelihood *= self.probability( codon, next_codon, loglik )
 				i += 3
 			return likelihood
+	
+	def graded_likelihood( self, sequence, loglik=True ): # graded - cumulative likelihood across sequence
+		if loglik:
+			graded_loglikelihood = list()
+			loglikelihood = 0
+			i = 0
+			while i <= len( sequence ) - 6:
+				codon = sequence[i:i+3]
+				next_codon = sequence[i+3:i+6]
+				loglikelihood += self.probability( codon, next_codon, loglik )
+				graded_loglikelihood.append( loglikelihood )
+				i += 3
+			return graded_loglikelihood
+		else:
+			graded_likelihood = list()
+			likelihood = 0
+			i = 0
+			while i <= len( sequence ) - 6:
+				codon = sequence[i:i+3]
+				next_codon = sequence[i+3:i+6]
+				likelihood += self.probability( codon, next_codon, loglik )
+				graded_likelihood.append( likelihood )
+				i += 3
+			return graded_likelihood
 	
 	def write( self, outfile ):
 		data = self.transition_counts, self.transition_probabilities
