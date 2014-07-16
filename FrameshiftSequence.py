@@ -1,4 +1,7 @@
 # -*- encoding: utf-8 -*-
+from __future__ import division
+import math
+from TransitionMatrix import *
 
 class FrameshiftSequence( object ):
 	def __init__( self, sequence, path ):
@@ -24,9 +27,10 @@ CAI:                   %s"""\
 	
 	def repr_as_row( self, sep="\t" ):
 		return sep.join([ "...".join([ self.frameshifted_sequence[:20], 
-			self.frameshifted_sequence[-20:] ]), str( self.length ), \
-				str( self.frameshift_count ), str( self.CAI ), \
-					",".join( map( str, self.path )), ",".join( self.signals )])
+				self.frameshifted_sequence[-20:] ]), str( self.length ), \
+					str( self.frameshift_count ), str( self.CAI ), \
+						str( self.CAI/math.sqrt( self.frameshift_count + 1 )), ",".join( map( str, self.path )), \
+							",".join( self.signals )])
 			
 	def frameshift_from_path( self, sequence, path ):
 		"""

@@ -12,7 +12,7 @@ class GeneticCode( object ):
 		with open( self.gc_file ) as f:
 			for row in f:
 				l = row.strip( "\n" ).split( "\t" )
-				self.amino_acids[l[0]] = AminoAcid( *l[:-1] )
+				self.amino_acids[l[0]] = AminoAcid( *l )
 				for c in l[3].split( "," ):
 					self.codons[c] = l[0]
 	

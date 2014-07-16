@@ -11,6 +11,7 @@ from Branch import *
 from Tree import *
 from FrameshiftSequence import *
 from GeneticCode import *
+from TransitionMatrix import *
 
 class Sequence( object ):
 	"""
@@ -38,6 +39,8 @@ class Sequence( object ):
 			self.length = len( sequence )
 		
 		self.CAI_score = None
+		self.likelihood = None
+		self.graded_likehood = None
 		
 		self.binary_codon_matrix = None
 		
@@ -57,12 +60,13 @@ class Sequence( object ):
 		self.frame_paths = dict() # all paths per frame
 		self.sorted_frame_paths = dict() # sorted by length
 		
-		# diction of FrameshiftSequence objects
+		# dictionary of FrameshiftSequence objects
 		# keys are path tuples
 		self.frameshift_sequences = dict()			
 		
 		# translation
 		self.genetic_code = None
+		self.transition_matrix = None
 	
 	#*****************************************************************************
 	
@@ -75,6 +79,7 @@ using whole sequence.""" % start_from
 			print >> sys.stderr, """Found start (%s) from position %d... \
 truncating sequence""" % ( start_from, start_pos )
 			self.sequence = self.sequence[start_pos:]
+			self.length = len( self.sequence )
 	
 	#*****************************************************************************
 	
@@ -128,6 +133,14 @@ truncating sequence""" % ( start_from, start_pos )
 			return " ".join( sequence )
 		else:
 			return self.sequence
+	
+	#*****************************************************************************
+	
+	def repr_as_row( self, sep="\t" ):
+		return sep.join([ "...".join([ self.sequence[:20], 
+						self.sequence[-20:] ]), str( self.length ), \
+							"0", str( self.CAI_score ), str( self.CAI_score ), \
+								"None", "None" ])
 	
 	#*****************************************************************************
 		
@@ -380,13 +393,24 @@ truncating sequence""" % ( start_from, start_pos )
 			for path in self.frame_paths[frame]:
 				self.frameshift_sequences[tuple(path)] = FrameshiftSequence( self.sequence, path )
 	
+	#*****************************************************************************
+	
 	def set_genetic_code( self, genetic_code ):
 		self.genetic_code = genetic_code
+	
+	#*****************************************************************************
+	
+	def set_transition_matrix( self, transition_matrix ):
+		self.transition_matrix = transition_matrix
+	
+	#*****************************************************************************
 		
 	def translate( self, genetic_code=None ):
 		if genetic_code is None and self.genetic_code is None:
 			raise ValueError( """Translation cannot proceed without a valid \
 				genetic code.""" )
+	
+	#*****************************************************************************
 	
 	def estimate_CAI( self ):
 		score = 0
@@ -404,6 +428,8 @@ truncating sequence""" % ( start_from, start_pos )
 		
 		return self.CAI_score
 	
+	#*****************************************************************************
+	
 	def estimate_frameshift_CAI( self ):
 		for fs in self.frameshift_sequences:
 			F = self.frameshift_sequences[fs]
@@ -419,5 +445,31 @@ truncating sequence""" % ( start_from, start_pos )
 				length += 1
 				i += 3
 			F.CAI = math.exp( score/length )
+	
+	#*****************************************************************************
+	
+	def estimate_overall_likelihood( self, loglik=False ):
+		if self.transition_matrix is None:
+			raise ValueError( "Missing transition matrix. First run 's.set_transition_matrix( TM )'." )
+		else:
+			self.likelihood = self.transition_matrix.likelihood( self.sequence, loglik=loglik )
+			return self.likelihood
 		
+	#*****************************************************************************
+	
+	def compute_graded_likelihood( self, loglik=False ):
+		if self.transition_matrix is None:
+			raise ValueError( "Missing transition matrix. First run 's.set_transition_matrix( TM )'." )
+		else:
+			self.graded_likelihood = list()
+			likelihood = 0
+			i = 0
+			while i <= len( self.sequence ) - 6:
+				C1 = self.sequence[i:i+3]
+				C2 = self.sequence[i+3:i+6]
+				likelihood += self.transition_matrix.probability( C1, C2, loglik=loglik )
+				self.graded_likelihood.append( likelihood )
+				i += 3
+			return self.graded_likehoood
+			
 			

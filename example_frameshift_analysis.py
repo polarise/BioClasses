@@ -13,13 +13,14 @@ def main( fasta_file ):
 			continue
 		fname = seq_record.id.split( " " )[0] + ".fa"
 		sequence = str( seq_record.seq )
-		first_start = sequence.find( "ATG" )
-		if first_start < 0:
-			print >> sys.stderr, "Missing start codon in sequence %s" % seq_record.id
-			continue
-		else:
-			sequence = sequence[first_start:]
+		# first_start = sequence.find( "ATG" )
+# 		if first_start < 0:
+# 			print >> sys.stderr, "Missing start codon in sequence %s" % seq_record.id
+# 			continue
+# 		else:
+# 			sequence = sequence[first_start:]
 		s = Sequence( sequence )
+		# s.truncaste()
 		s.build_tree()
 		with open( fname, 'w' ) as f:
 			for k in s.frameshift_sequences:

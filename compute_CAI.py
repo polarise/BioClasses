@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 from __future__ import division
 import sys
+import glob
 from AminoAcid import *
 from Bio import SeqIO
 
@@ -17,7 +18,7 @@ def main( fn, fastafile ):
 	with open( fn ) as f:
 		for row in f:
 			l = row.strip( "\n" ).split( "\t" )
-			genetic_code[l[0]] = AminoAcid( *l[:-1], as_RNA=False )
+			genetic_code[l[0]] = AminoAcid( *l )
 			for c in l[3].split( "," ):
 				c = c.replace( "U", "T" )
 				codon_dict[c] = l[0]
@@ -31,7 +32,7 @@ def main( fn, fastafile ):
 		#print
 	
 	orf_frame = dict()
-	with open( "/home/paul/Dropbox/Euplotes/FrameshiftPredictionData/one_orfs.txt" ) as f:
+	with open( "/Users/paulkorir/Dropbox/Euplotes/FrameshiftPredictionData/one_orfs.txt" ) as f:
 		for row in f:
 			if row[0] == "T":
 				continue
