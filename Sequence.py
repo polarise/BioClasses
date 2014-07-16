@@ -53,8 +53,7 @@ class Sequence( object ):
 		self.unique_stop_sequence = list()
 		
 		self.tree = None
-		self.branches = list()
-		
+		self.branches = list()		
 		self.paths = list() # all tree paths
 		self.no_paths = None
 		self.frame_paths = dict() # all paths per frame
@@ -62,7 +61,9 @@ class Sequence( object ):
 		
 		# dictionary of FrameshiftSequence objects
 		# keys are path tuples
-		self.frameshift_sequences = dict()			
+		self.frameshift_sequences = dict()
+		self.most_likely_frameshift = None
+		self.least_likely_frameshift = None
 		
 		# translation
 		self.genetic_code = None
@@ -71,6 +72,7 @@ class Sequence( object ):
 	#*****************************************************************************
 	
 	def truncate( self, start_from="ATG" ):
+		""""""
 		start_pos = self.sequence.find( start_from )
 		if start_pos < 0:
 			print >> sys.stderr, """Warning: unable to find %s signal... \
@@ -286,15 +288,15 @@ truncating sequence""" % ( start_from, start_pos )
 			self.unique_stop_sequence = list()
 
 		# print unique_stop_sequence
-		if len( self.unique_stop_sequence ) == 0:
-			self.unique_stop_sequence += zip( range( 3 ), [ -1 ]*3 )
-		else:
-			if self.unique_stop_sequence[-1][0] == 0:
-				self.unique_stop_sequence += [ (1,-1), (2,-1) ]
-			elif self.unique_stop_sequence[-1][0] == 1:
-				self.unique_stop_sequence += [ (0,-1), (2,-1) ]
-			elif self.unique_stop_sequence[-1][0] == 2:
-				self.unique_stop_sequence += [ (0,-1), (1,-1) ]
+		# if len( self.unique_stop_sequence ) == 0:
+		self.unique_stop_sequence += zip( range( 3 ), [ -1 ]*3 )
+		# else:
+		# 	if self.unique_stop_sequence[-1][0] == 0:
+		# 		self.unique_stop_sequence += [ (1,-1), (2,-1) ]
+		# 	elif self.unique_stop_sequence[-1][0] == 1:
+		# 		self.unique_stop_sequence += [ (0,-1), (2,-1) ]
+		# 	elif self.unique_stop_sequence[-1][0] == 2:
+		# 		self.unique_stop_sequence += [ (0,-1), (1,-1) ]
 		
 	#*****************************************************************************
 	
@@ -472,3 +474,27 @@ truncating sequence""" % ( start_from, start_pos )
 				F = self.frameshift_sequences[fs]
 				F.likelihood = self.transition_matrix.likelihood( F.frameshifted_sequence, loglik=loglik )
 				F.graded_likelihood = self.transition_matrix.graded_likelihood( F.frameshifted_sequence, loglik=loglik )
+	
+	#*****************************************************************************
+	
+	def get_most_likely_frameshift( self ):
+		max_likelihood = None
+		min_likelihood = None
+		self.most_likely_frameshift = None
+		self.least_likely_frameshift = None
+		for fs in self.frameshift_sequences:
+			F = self.frameshift_sequences[fs]
+			if max_likelihood is None:
+				self.most_likely_frameshift = F
+				self.least_likely_frameshift = F
+				max_likelihood = F.likelihood
+				min_likelihood = F.likelihood
+			else:
+				if F.likelihood > max_likelihood:
+					max_likelihood = F.likelihood
+					self.most_likely_frameshift = F
+				if F.likelihood < min_likelihood:
+					min_likelihood = F.likelihood
+					self.least_likely_frameshift = F
+				
+		return self.most_likely_frameshift

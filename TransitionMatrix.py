@@ -14,6 +14,8 @@ class TransitionMatrix( object ):
 		"""
 		self.transition_counts = dict()
 		self.transition_probabilities = dict()
+	
+	#*****************************************************************************
 		
 	def build( self, fastafile ):
 		# count the transitions
@@ -59,11 +61,15 @@ class TransitionMatrix( object ):
 			for next_codon in self.transition_counts[codon]:
 				self.transition_probabilities[codon][next_codon] = self.transition_counts[codon][next_codon]/total
 	
+	#*****************************************************************************
+	
 	def probability( self, C1, C2, loglik=True, logbase=math.exp( 1 ) ): # probability of C2 given C1 i.e. C1->C2
 		if loglik:
 			return math.log( self.transition_probabilities[C1][C2], logbase )
 		else:
 			return self.transition_probabilities[C1][C2]
+	
+	#*****************************************************************************
 	
 	def likelihood( self, sequence, loglik=True ): # sequence likelihood
 		if loglik:
@@ -85,9 +91,11 @@ class TransitionMatrix( object ):
 				i += 3
 			return likelihood
 	
+	#*****************************************************************************
+	
 	def graded_likelihood( self, sequence, loglik=True ): # graded - cumulative likelihood across sequence
 		if loglik:
-			graded_loglikelihood = list()
+			graded_loglikelihood = [ 0 ]
 			loglikelihood = 0
 			i = 0
 			while i <= len( sequence ) - 6:
@@ -98,7 +106,7 @@ class TransitionMatrix( object ):
 				i += 3
 			return graded_loglikelihood
 		else:
-			graded_likelihood = list()
+			graded_likelihood = [ 0 ]
 			likelihood = 0
 			i = 0
 			while i <= len( sequence ) - 6:
@@ -109,10 +117,14 @@ class TransitionMatrix( object ):
 				i += 3
 			return graded_likelihood
 	
+	#*****************************************************************************
+	
 	def write( self, outfile ):
 		data = self.transition_counts, self.transition_probabilities
 		with open( outfile, 'w' ) as f:
 			cPickle.dump( data, f, cPickle.HIGHEST_PROTOCOL )
+	
+	#*****************************************************************************
 		
 	def read( self, infile ):
 		with open( infile ) as f:

@@ -13,7 +13,9 @@ class FrameshiftSequence( object ):
 		self.likelihood = None
 		self.graded_likelihood = None
 	
-	def __repr__( self ):
+	#*****************************************************************************
+	
+	def __repr__( self ):		
 		return """\
 Path:                  %s
 Frameshifted sequence: %s
@@ -21,11 +23,14 @@ Fragments:             %s
 Signals:               %s
 Length:                %s
 No. of frameshifts:    %s
-CAI:                   %s"""\
+CAI:                   %s
+Log-likelihood:        %s"""\
 	% ( ",".join( map( str, self.path )), \
 		"...".join([ self.frameshifted_sequence[:20], \
 			self.frameshifted_sequence[-20:] ]), ", ".join( self.fragments ),\
-				",".join( self.signals ), self.length, self.frameshift_count, self.CAI )
+				",".join( self.signals ), self.length, self.frameshift_count, self.CAI, self.likelihood )
+	
+	#*****************************************************************************
 	
 	def repr_as_row( self, sep="\t" ):
 		return sep.join([ "...".join([ self.frameshifted_sequence[:20], 
@@ -33,6 +38,8 @@ CAI:                   %s"""\
 					str( self.frameshift_count ), str( self.CAI ), \
 						str( self.CAI/math.sqrt( self.frameshift_count + 1 )), ",".join( map( str, self.path )), \
 							",".join( self.signals )])
+	
+	#*****************************************************************************
 			
 	def frameshift_from_path( self, sequence, path ):
 		"""
