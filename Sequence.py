@@ -40,7 +40,7 @@ class Sequence( object ):
 		
 		self.CAI_score = None
 		self.likelihood = None
-		self.graded_likehood = None
+		self.graded_likelihood = None
 		
 		self.binary_codon_matrix = None
 		

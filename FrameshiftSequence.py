@@ -37,7 +37,7 @@ Log-likelihood:        %s"""\
 				self.frameshifted_sequence[-20:] ]), str( self.length ), \
 					str( self.frameshift_count ), str( self.CAI ), \
 						str( self.CAI/math.sqrt( self.frameshift_count + 1 )), ",".join( map( str, self.path )), \
-							",".join( self.signals )])
+							",".join( self.signals ), str( self.likelihood )])
 	
 	#*****************************************************************************
 			
