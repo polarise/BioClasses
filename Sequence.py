@@ -12,12 +12,15 @@ from Tree import *
 from FrameshiftSequence import *
 from GeneticCode import *
 from TransitionMatrix import *
+import numpy
+import matplotlib.pyplot as plt
+from LeafCounter import *
 
 class Sequence( object ):
 	"""
 	The base class
 	"""
-	def __init__( self, sequence=None, length=None, bases='ACGT', starts=[ 'ATG' ], stops=[ 'TAA', 'TAG' ] ):
+	def __init__( self, sequence=None, name=None, length=None, bases='ACGT', starts=[ 'ATG' ], stops=[ 'TAA', 'TAG' ] ):
 		"""
 		Initialise a Sequence object
 		"""
@@ -31,6 +34,7 @@ class Sequence( object ):
 		for stop in self.stops:
 			self.non_stops.remove( stop )
 		
+		self.name = name
 		if sequence is None:
 			self.sequence = sequence
 			self.length = length
@@ -41,12 +45,14 @@ class Sequence( object ):
 		self.CAI_score = None
 		self.likelihood = None
 		self.graded_likelihood = None
+		self.differential_graded_likelihood = None
 		
 		self.binary_codon_matrix = None
 		
 		self.is_frameshift = False
 		self.as_codons = False
 		
+		self.start_pos = None
 		self.stop_positions = dict()
 		self.stop_sequence = list()
 		self.filtered_stop_sequence = list()
@@ -64,24 +70,49 @@ class Sequence( object ):
 		self.frameshift_sequences = dict()
 		self.most_likely_frameshift = None
 		self.least_likely_frameshift = None
+		self.frameshift_signals = list()
 		
 		# translation
 		self.genetic_code = None
 		self.transition_matrix = None
+		
+	#*****************************************************************************
+	
+	def count_leaves( self ):
+		"""
+		Method to count the number of leaves in the tree
+		"""
+		self.get_stop_sequence()
+		self.sanitise_stop_sequence()
+		nodes = [ Node( *d ) for d in self.unique_stop_sequence ]
+		# initiate a LeafCounter object
+		L = LeafCounter()
+		for n in nodes[:-3]:
+			L.add_node( n )
+			
+		return L.leaf_count()
 	
 	#*****************************************************************************
 	
-	def truncate( self, start_from="ATG" ):
-		""""""
-		start_pos = self.sequence.find( start_from )
-		if start_pos < 0:
-			print >> sys.stderr, """Warning: unable to find %s signal... \
-using whole sequence.""" % start_from
+	def truncate( self, start_from="ATG", effect_truncation=True ):
+		"""
+		
+		"""
+		self.start_pos = None
+		self.start_pos = self.sequence.find( start_from )
+		if effect_truncation: 
+			if self.start_pos < 0:
+				print >> sys.stderr, "Warning: unable to find %s signal... using whole sequence." % start_from
+				return -1
+			else:
+				print >> sys.stderr, "Found start (%s) from position %d... truncating sequence" % ( start_from, self.start_pos )
+				self.sequence = self.sequence[self.start_pos:]
+				self.length = len( self.sequence )
+				self.start_pos = 0
+				return 0
 		else:
-			print >> sys.stderr, """Found start (%s) from position %d... \
-truncating sequence""" % ( start_from, start_pos )
-			self.sequence = self.sequence[start_pos:]
-			self.length = len( self.sequence )
+			print >> sys.stderr, "Not effecting truncation but return position of first start (ATG)..."
+			return self.start_pos
 	
 	#*****************************************************************************
 	
@@ -268,6 +299,8 @@ truncating sequence""" % ( start_from, start_pos )
 		
 		for p in positions:
 			self.stop_sequence.append( ( self.stop_positions[p], p ))
+		
+		return self.stop_sequence
 			
 	#*****************************************************************************
 	
@@ -297,6 +330,8 @@ truncating sequence""" % ( start_from, start_pos )
 		# 		self.unique_stop_sequence += [ (0,-1), (2,-1) ]
 		# 	elif self.unique_stop_sequence[-1][0] == 2:
 		# 		self.unique_stop_sequence += [ (0,-1), (1,-1) ]
+		
+		return self.unique_stop_sequence
 		
 	#*****************************************************************************
 	
@@ -462,7 +497,9 @@ truncating sequence""" % ( start_from, start_pos )
 		else:
 			self.likelihood = self.transition_matrix.likelihood( self.sequence, loglik=loglik )
 			self.graded_likelihood = self.transition_matrix.graded_likelihood( self.sequence, loglik=loglik )
-			return self.likelihood, self.graded_likelihood
+			self.differential_graded_likelihood = self.transition_matrix.differential_graded_likelihood( self.sequence, loglik=loglik )
+			
+			return self.likelihood, self.graded_likelihood, self.differential_graded_likelihood
 			
 	#*****************************************************************************
 	
@@ -474,6 +511,7 @@ truncating sequence""" % ( start_from, start_pos )
 				F = self.frameshift_sequences[fs]
 				F.likelihood = self.transition_matrix.likelihood( F.frameshifted_sequence, loglik=loglik )
 				F.graded_likelihood = self.transition_matrix.graded_likelihood( F.frameshifted_sequence, loglik=loglik )
+				F.differential_graded_likelihood = self.transition_matrix.differential_graded_likelihood( F.frameshifted_sequence, loglik=loglik )
 	
 	#*****************************************************************************
 	
@@ -498,3 +536,68 @@ truncating sequence""" % ( start_from, start_pos )
 					self.least_likely_frameshift = F
 				
 		return self.most_likely_frameshift
+	
+	#*****************************************************************************
+		
+	def get_frameshift_signals( self ):
+		"""
+		"""
+		self.frameshift_signals = list()
+		# first get all frame of sequence
+		sequence_in_frames = dict()
+		for i in xrange( 3 ):
+			sequence_in_frames[i] = self.sequence[i:]
+	
+		i = 0
+		f_i = 0
+		for f,j in self.unique_stop_sequence[:-3]:
+			self.frameshift_signals.append( self.sequence[j-3:j+3] )
+			i = j
+			f_i = f
+			
+		return self.frameshift_signals[:-1]
+		
+	
+	#*****************************************************************************
+	
+	def plot_differential_graded_likelihood( self, outfile=None ):
+		"""
+		Method to plot a sequence and its likelihood tributaries
+		"""
+		x = numpy.linspace( 1, len( self.graded_likelihood ), len( self.graded_likelihood )  )
+		plt.plot( x*3, self.differential_graded_likelihood, ":", color='r', linewidth=1.5 )
+		
+		plt.title( self.name )
+		
+		# the frameshift sequences
+		for path in self.paths:
+			F = self.frameshift_sequences
+			x = numpy.linspace( 1, len( F[tuple( path )].differential_graded_likelihood ), len( F[tuple( path )].graded_likelihood ))
+			plt.plot( x*3, F[tuple( path )].differential_graded_likelihood )
+		# the frameshift sites
+		# the frameshift signal
+		ymin,ymax = plt.ylim()
+		for i in xrange( len( self.frameshift_signals )):
+			plt.axvline( self.unique_stop_sequence[i][1], color=( .5, .5, .5 ), linestyle="dashed" )
+			if i == 0:
+				plt.annotate( self.unique_stop_sequence[i][0], xy=( self.unique_stop_sequence[i][1]/2 - 4, ymin + 5 ), size='large', color=( 0.5, 0.5, 0.5 ) )
+			else:
+				plt.annotate( self.unique_stop_sequence[i][0], xy=( self.unique_stop_sequence[i-1][1] + ( self.unique_stop_sequence[i][1] - self.unique_stop_sequence[i-1][1] )/2 - 4, ymin + 5 ), size='large', color=( 0.5, 0.5, 0.5 ) )
+			plt.annotate( self.frameshift_signals[i], xy=( self.unique_stop_sequence[i][1], ymax - 2 ), rotation=90, size='x-small' )
+		# terminal region
+		plt.axvline( self.length - 1, color='r', linestyle="dashed" )
+	
+		# mark the position of the first start (ATG)
+		if self.start_pos >= 0:
+			plt.axvline( self.start_pos, color='r', linestyle='dashed' )
+			plt.annotate( "ATG", xy=( self.start_pos, ymax - 3 ), rotation=90, size='x-small', color='r' )
+		
+		# add a grid
+		plt.grid()
+		
+		if outfile is not None:
+			outfile.savefig()
+			plt.close()
+		else:
+			plt.show()
+		

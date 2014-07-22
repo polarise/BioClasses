@@ -95,7 +95,7 @@ class TransitionMatrix( object ):
 	
 	def graded_likelihood( self, sequence, loglik=True ): # graded - cumulative likelihood across sequence
 		if loglik:
-			graded_loglikelihood = [ 0 ]
+			graded_loglikelihood = list()
 			loglikelihood = 0
 			i = 0
 			while i <= len( sequence ) - 6:
@@ -106,8 +106,8 @@ class TransitionMatrix( object ):
 				i += 3
 			return graded_loglikelihood
 		else:
-			graded_likelihood = [ 0 ]
-			likelihood = 0
+			graded_likelihood = list()
+			likelihood = 1
 			i = 0
 			while i <= len( sequence ) - 6:
 				codon = sequence[i:i+3]
@@ -116,6 +116,20 @@ class TransitionMatrix( object ):
 				graded_likelihood.append( likelihood )
 				i += 3
 			return graded_likelihood
+	
+	#*****************************************************************************
+	
+	def differential_graded_likelihood( self, sequence, loglik=True ): # minus uniform random sequence
+		if loglik:
+			diff_graded_loglikelihood = list()
+			graded_loglikelihood = self.graded_likelihood( sequence, loglik )
+			diff_graded_loglikelihood = [ graded_loglikelihood[i] + ( i + 1 )*math.log( 64 ) for i in xrange( len( graded_loglikelihood ))]
+			return diff_graded_loglikelihood
+		else:
+			diff_graded_likelihood = list()
+			graded_likelihood = self.graded_likelihood( sequence )
+			diff_graded_likelihood = [ 64**( i + 1 )*graded_likelihood[i]]
+			return diff_graded_likelihood			
 	
 	#*****************************************************************************
 	

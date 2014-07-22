@@ -12,6 +12,7 @@ class FrameshiftSequence( object ):
 		self.CAI = None
 		self.likelihood = None
 		self.graded_likelihood = None
+		self.differential_graded_likelihood = None
 	
 	#*****************************************************************************
 	
@@ -61,7 +62,7 @@ Log-likelihood:        %s"""\
 			i = j
 			f_i = f
 		
-		# we could factor in the last trivial frameshift...
+		# we could factor in the last trivial nucleotide...
 		frameshifted_sequence += sequence[-1]
 		fragments[-1] += sequence[-1]
 				
