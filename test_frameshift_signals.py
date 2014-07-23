@@ -12,10 +12,10 @@ from Bio import SeqIO
 def main( fn ):
 	TM = TransitionMatrix()
 	TM.read( "euplotid_transition_matrix.pic" )
-	pdf = PdfPages( "likelihood_profiles_1000fs.pdf" )
+	# pdf = PdfPages( "likelihood_profiles_1000fs.pdf" )
 	c = 0
 	for seq_record in SeqIO.parse( fn, "fasta" ):
-		if c > 1000:
+		if c > 1:
 			break
 		sequence = str( seq_record.seq )
 		seq_name = seq_record.id
@@ -30,9 +30,10 @@ def main( fn ):
 		s.get_frameshift_signals()
 		s.estimate_likelihood()
 		s.estimate_frameshift_likelihood()
-		s.plot_differential_graded_likelihood( outfile=pdf )
+		# s.plot_differential_graded_likelihood( outfile=pdf )
+		s.plot_differential_graded_likelihood()
 		c += 1
-	pdf.close()
+	# pdf.close()
 	
 if __name__ == "__main__":
 	try:
