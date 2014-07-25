@@ -36,16 +36,26 @@ class Sequence( object ):
 		
 		self.name = name
 		if sequence is None:
-			self.sequence = sequence
+			self.sequence = sequence # frame 0
+			self.sequence_ = sequence[1:] # frame 1
+			self.sequence__ = sequence[2:] # frame 2
 			self.length = length
 		else:
 			self.sequence = sequence.upper()
+			self.sequence_ = sequence[1:].upper() # frame 1
+			self.sequence__ = sequence[2:].upper() # frame 2
 			self.length = len( sequence )
 		
 		self.CAI_score = None
-		self.likelihood = None
-		self.graded_likelihood = None
-		self.differential_graded_likelihood = None
+		self.likelihood = None # frame 0
+		self.likelihood_ = None # frame 1
+		self.likelihood__ = None	# frame 2
+		self.graded_likelihood = None # frame 0
+		self.graded_likelihood_ = None # frame 1
+		self.graded_likelihood__ = None # frame 2
+		self.differential_graded_likelihood = None # frame 0
+		self.differential_graded_likelihood_ = None # frame 1
+		self.differential_graded_likelihood__ = None # frame 2
 		
 		self.binary_codon_matrix = None
 		
@@ -110,7 +120,9 @@ class Sequence( object ):
 			else:
 				if verbose:
 					print >> sys.stderr, "Found start (%s) from position %d... truncating sequence" % ( start_from, self.start_pos )
-				self.sequence = self.sequence[self.start_pos:]
+				self.sequence = self.sequence[self.start_pos:] # frame 0
+				self.sequence_ = self.sequence[1:]	# frame 1
+				self.sequence__ = self.sequence[2:]	# frame 2
 				self.length = len( self.sequence )
 				self.start_pos = 0
 				return 0
@@ -536,10 +548,20 @@ class Sequence( object ):
 		if self.transition_matrix is None:
 			raise ValueError( "Missing transition matrix. First run 's.set_transition_matrix( TM )'." )
 		else:
+			# frame 0
 			self.likelihood = self.transition_matrix.likelihood( self.sequence, loglik=loglik )
 			self.graded_likelihood = self.transition_matrix.graded_likelihood( self.sequence, loglik=loglik )
 			self.differential_graded_likelihood = self.transition_matrix.differential_graded_likelihood( self.sequence, loglik=loglik )
+			# frame 1
+			self.likelihood_ = self.transition_matrix.likelihood( self.sequence_, loglik=loglik )
+			self.graded_likelihood_ = self.transition_matrix.graded_likelihood( self.sequence_, loglik=loglik )
+			self.differential_graded_likelihood_ = self.transition_matrix.differential_graded_likelihood( self.sequence_, loglik=loglik )
+			# frame 2
+			self.likelihood__ = self.transition_matrix.likelihood( self.sequence__, loglik=loglik )
+			self.graded_likelihood__ = self.transition_matrix.graded_likelihood( self.sequence__, loglik=loglik )
+			self.differential_graded_likelihood__ = self.transition_matrix.differential_graded_likelihood( self.sequence__, loglik=loglik )
 			
+			# only return results for frame 0
 			return self.likelihood, self.graded_likelihood, self.differential_graded_likelihood
 			
 	#*****************************************************************************
@@ -600,32 +622,37 @@ class Sequence( object ):
 			
 	#*****************************************************************************
 	
-	def plot_differential_graded_likelihood( self, outfile=None ):
+	def plot_differential_graded_likelihood( self, outfile=None, show_starts=False, show_signals=True, show_path_str=True ):
 		"""
 		Method to plot a sequence and its likelihood tributaries
 		"""
+		# frame 0
 		x = numpy.linspace( 1, len( self.graded_likelihood ), \
 			len( self.graded_likelihood )  )
-		# frame 0
 		plt.plot( x*3, self.differential_graded_likelihood, ":", color='r', \
 			linewidth=1.5 )
 		plt.annotate( "No shift (fr 0)", xy=( self.length + 4, \
 			self.differential_graded_likelihood[-1] ), size='x-small', \
 				horizontalalignment='left' )
-		"""
+		
 		# frame 1
-		plt.plot( x*3 + 1, self.differential_graded_likelihood, ":", color='b', \
+		x1 = numpy.linspace( 1, len( self.graded_likelihood_ ), \
+			len( self.graded_likelihood_ ))
+		plt.plot( x1*3 + 1, self.differential_graded_likelihood_, ":", color='g', \
 			linewidth=1.5 )
 		plt.annotate( "No shift (fr 1)", xy=( self.length + 4, \
-			self.differential_graded_likelihood[-1] ), size='x-small', \
+			self.differential_graded_likelihood_[-1] ), size='x-small', \
 				horizontalalignment='left' )
+		
 		# frame 2
-		plt.plot( x*3 + 2, self.differential_graded_likelihood, ":", color='g', \
+		x2 = numpy.linspace( 1, len( self.graded_likelihood__ ), \
+			len( self.graded_likelihood__ ))
+		plt.plot( x2*3 + 2, self.differential_graded_likelihood__, ":", color='b', \
 			linewidth=1.5 )
 		plt.annotate( "No shift (fr 2)", xy=( self.length + 4, \
-			self.differential_graded_likelihood[-1] ), size='x-small', \
+			self.differential_graded_likelihood__[-1] ), size='x-small', \
 				horizontalalignment='left' )
-		"""
+		
 		plt.xlim( 0, self.length + 40 )
 		
 		# x- and y-labels
@@ -636,47 +663,52 @@ class Sequence( object ):
 		up = True
 		for path in self.paths:
 			F = self.frameshift_sequences
+			# note: path[1:]
+			# why? because starting with the first frame is pointless
 			x = numpy.linspace( 1, \
-				len( F[tuple( path )].differential_graded_likelihood ), \
+				len( F[tuple( path[1:] )].differential_graded_likelihood ), \
 					len( F[tuple( path )].graded_likelihood ))
 			plt.plot( x*3, F[tuple( path )].differential_graded_likelihood )
 			# write the shift sequence at the end
-			if up:
-				plt.annotate( F[tuple( path )].path_str, xy=( self.length + 4, \
-					F[tuple( path )].differential_graded_likelihood[-1] + 0.25 ), \
-						size='x-small', horizontalalignment='left' )
-				up = False
-			else:
-				plt.annotate( F[tuple( path )].path_str, xy=( self.length + 4, \
-					F[tuple( path )].differential_graded_likelihood[-1] - 0.25 ), \
-						size='x-small', horizontalalignment='left' )
-				up = True
+			if show_path_str:
+				if up:
+					plt.annotate( F[tuple( path[1:] )].path_str, xy=( self.length + 4, \
+						F[tuple( path )].differential_graded_likelihood[-1] + 0.25 ), \
+							size='xx-small', horizontalalignment='left' )
+					up = False
+				else:
+					plt.annotate( F[tuple( path[1:] )].path_str, xy=( self.length + 4, \
+						F[tuple( path )].differential_graded_likelihood[-1] - 0.25 ), \
+							size='xx-small', horizontalalignment='left' )
+					up = True
 			
 		# the frameshift sites
 		# the frameshift signal
 		ymin,ymax = plt.ylim()
 		xmin,xmax = plt.xlim()
-		for i in xrange( len( self.frameshift_signals )):
-			# vertical dashed frameshift signal markers
-			plt.axvline( self.unique_stop_sequence[i][1], color=( .5, .5, .5 ), \
-				linestyle="dashed" )
-			# the frame
-			if i == 0:
-				plt.annotate( self.unique_stop_sequence[i][0], \
-					xy=( self.unique_stop_sequence[i][1]/2, ymin + 3 ), size='x-small', \
-						color=( 0.5, 0.5, 0.5 ), horizontalalignment='center' )
-			else:
-				plt.annotate( self.unique_stop_sequence[i][0], \
-					xy=( self.unique_stop_sequence[i-1][1] + \
-						( self.unique_stop_sequence[i][1] - \
-							self.unique_stop_sequence[i-1][1] )/2, ymin + 3 ), \
-								size='x-small', color=( 0.5, 0.5, 0.5 ), \
-									horizontalalignment='center' )
-			# frameshift signal
-			plt.annotate( self.frameshift_signals[i], \
-				xy=( self.unique_stop_sequence[i][1], ymax ), rotation=90, \
-					size='x-small', horizontalalignment='right', \
-						verticalalignment='right' )
+		if show_signals:
+			for i in xrange( len( self.frameshift_signals )):
+				# vertical dashed frameshift signal markers
+				plt.axvline( self.unique_stop_sequence[i][1], color=( .5, .5, .5 ), \
+					linestyle="dashed" )
+				# the frame
+				if i == 0:
+					plt.annotate( self.unique_stop_sequence[i][0], \
+						xy=( self.unique_stop_sequence[i][1]/2, ymin + 3 ), size='x-small', \
+							color=( 0.5, 0.5, 0.5 ), horizontalalignment='center' )
+				else:
+					plt.annotate( self.unique_stop_sequence[i][0], \
+						xy=( self.unique_stop_sequence[i-1][1] + \
+							( self.unique_stop_sequence[i][1] - \
+								self.unique_stop_sequence[i-1][1] )/2, ymin + 3 ), \
+									size='x-small', color=( 0.5, 0.5, 0.5 ), \
+										horizontalalignment='center' )
+				# frameshift signal
+				plt.annotate( self.frameshift_signals[i], \
+					xy=( self.unique_stop_sequence[i][1], ymax ), rotation=90, \
+						size='x-small', horizontalalignment='right', \
+							verticalalignment='right' )
+		
 		# terminal region
 		plt.axvline( self.length - 1, color='r', linestyle="dashed" )
 	
@@ -688,23 +720,24 @@ class Sequence( object ):
 					#verticalalignment='right' )
 		
 		# mark the positions of all starts
-		if len( self.start_sequence ) > 0:
-			for fr,pos in self.start_sequence:
-				if fr == 0:
-					plt.axvline( pos, color='r', linestyle='dashed' )
-					plt.annotate( "ATG[0]", xy=( pos, ymax ), rotation=90,\
-						size='x-small', color='r', horizontalalignment='right',\
-							verticalalignment='right' )
-				elif fr == 1:
-					plt.axvline( pos, color='g', linestyle='dashed' )
-					plt.annotate( "ATG[1]", xy=( pos, ymax ), rotation=90,\
-						size='x-small', color='g', horizontalalignment='right',\
-							verticalalignment='right' )
-				elif fr == 2:
-					plt.axvline( pos, color='b', linestyle='dashed' )
-					plt.annotate( "ATG[2]", xy=( pos, ymax ), rotation=90,\
-						size='x-small', color='b', horizontalalignment='right',\
-							verticalalignment='right' )
+		if show_starts:
+			if len( self.start_sequence ) > 0:
+				for fr,pos in self.start_sequence:
+					if fr == 0:
+						plt.axvline( pos, color='r', linestyle='dashed' )
+						plt.annotate( "ATG[0]", xy=( pos, ymax ), rotation=90,\
+							size='x-small', color='r', horizontalalignment='right',\
+								verticalalignment='right' )
+					elif fr == 1:
+						plt.axvline( pos, color='g', linestyle='dashed' )
+						plt.annotate( "ATG[1]", xy=( pos, ymax ), rotation=90,\
+							size='x-small', color='g', horizontalalignment='right',\
+								verticalalignment='right' )
+					elif fr == 2:
+						plt.axvline( pos, color='b', linestyle='dashed' )
+						plt.annotate( "ATG[2]", xy=( pos, ymax ), rotation=90,\
+							size='x-small', color='b', horizontalalignment='right',\
+								verticalalignment='right' )
 		
 		# the sequence name (number of paths)
 		plt.annotate( "%s (%s paths)" % ( self.name, len( self.paths )), \

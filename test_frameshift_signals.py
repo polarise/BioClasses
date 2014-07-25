@@ -16,7 +16,7 @@ def main( fn ):
 	b = 0 # count the ones that pass
 	c = 0 # count all
 	for seq_record in SeqIO.parse( fn, "fasta" ):
-		if c > 100:
+		if c > 1000:
 			break
 		sequence = str( seq_record.seq )
 		seq_name = seq_record.id
@@ -34,7 +34,7 @@ def main( fn ):
 		s.get_most_likely_frameshift()
 		if s.most_likely_frameshift is not None:
 			if 1 < len( s.most_likely_frameshift.path ) < 4:
-				s.plot_differential_graded_likelihood( outfile=pdf )
+				s.plot_differential_graded_likelihood( outfile=pdf, show_path_str=True )
 				#s.plot_differential_graded_likelihood()
 				b += 1
 		c += 1
