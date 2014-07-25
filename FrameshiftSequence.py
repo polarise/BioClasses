@@ -6,6 +6,7 @@ from TransitionMatrix import *
 class FrameshiftSequence( object ):
 	def __init__( self, sequence, path ):
 		self.path = path
+		self.path_str = ",".join( map( str, [ a for a,b in path ]))
 		self.frameshifted_sequence, self.fragments, self.signals = self.frameshift_from_path( sequence, path )
 		self.length = len( self.frameshifted_sequence )
 		self.frameshift_count = len( self.path ) - 1

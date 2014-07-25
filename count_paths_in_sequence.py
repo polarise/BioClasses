@@ -33,7 +33,8 @@ def main( fn ):
 		L = LeafCounter()
 		for n in nodes[:-3]:
 			L.add_node( n )
-		# print "%s\t%s" % ( seq_name, L.leaf_count() )
+		print "%s\t%s" % ( seq_name, L.leaf_count() )
+		"""
 		if L.leaf_count() > 10000:
 			print >> sys.stderr, "Skipping complex sequence %s with %d leaves..." % ( seq_name, L.leaf_count())
 			continue
@@ -53,6 +54,7 @@ def main( fn ):
 			print seq_name + "\t" + s.most_likely_frameshift.repr_as_row()
 		
 		c += 0
+		"""
 	
 if __name__ == "__main__":
 	fn = sys.argv[1]
