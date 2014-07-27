@@ -29,7 +29,6 @@ def main( fn, seq_name ):
 			s.get_frameshift_signals()
 			s.estimate_likelihood()
 			s.estimate_frameshift_likelihood()
-			print seq_name
 			#print s.differential_graded_likelihood
 			#for fs in s.frameshift_sequences:
 				#corr = scipy.signal.correlate( s.differential_graded_likelihood, \
@@ -37,7 +36,7 @@ def main( fn, seq_name ):
 				#plt.plot( range( 212 ), corr )
 			#plt.grid()
 			#plt.show()
-			s.plot_differential_graded_likelihood()
+			s.plot_differential_graded_likelihood( show_name=False )
 			found = True
 			break
 	

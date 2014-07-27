@@ -622,7 +622,7 @@ class Sequence( object ):
 			
 	#*****************************************************************************
 	
-	def plot_differential_graded_likelihood( self, outfile=None, show_starts=False, show_signals=True, show_path_str=True ):
+	def plot_differential_graded_likelihood( self, outfile=None, show_starts=False, show_signals=True, show_path_str=True, show_name=True ):
 		"""
 		Method to plot a sequence and its likelihood tributaries
 		"""
@@ -652,6 +652,17 @@ class Sequence( object ):
 		plt.annotate( "No shift (fr 2)", xy=( self.length + 4, \
 			self.differential_graded_likelihood__[-1] ), size='x-small', \
 				horizontalalignment='left' )
+		
+		"""
+		print >> sys.stderr, len( self.differential_graded_likelihood ), len( self.differential_graded_likelihood_ ), len( self.differential_graded_likelihood__ )
+		the_length = min([ len( self.differential_graded_likelihood ), len( self.differential_graded_likelihood_ ), len( self.differential_graded_likelihood__ )])
+		val = list()
+		for i in xrange( the_length ):
+			# val.append( math.sqrt( self.differential_graded_likelihood[i]**2 + self.differential_graded_likelihood_[i]**2 + self.differential_graded_likelihood__[i]**2 ))
+			val.append( self.differential_graded_likelihood[i] + self.differential_graded_likelihood_[i] + self.differential_graded_likelihood__[i] )
+		xk = numpy.linspace( 1, the_length, the_length )
+		plt.plot( xk*3, val, linewidth=2 )
+		"""
 		
 		plt.xlim( 0, self.length + 40 )
 		
@@ -740,10 +751,11 @@ class Sequence( object ):
 								verticalalignment='right' )
 		
 		# the sequence name (number of paths)
-		plt.annotate( "%s (%s paths)" % ( self.name, len( self.paths )), \
-			xy=( xmin + 0.05*( xmax - xmin ), ymax - 0.05*( ymax - ymin ) ), size='large', horizontalalignment='left',\
-				verticalalignment='top', bbox=dict( boxstyle="square", \
-					ec=( 1, .5, .5 ), fc=( 1, 1, 1 )))
+		if show_name:
+			plt.annotate( "%s (%s paths)" % ( self.name, len( self.paths )), \
+				xy=( xmin + 0.05*( xmax - xmin ), ymax - 0.05*( ymax - ymin ) ), size='large', horizontalalignment='left',\
+					verticalalignment='top', bbox=dict( boxstyle="square", \
+						ec=( 1, .5, .5 ), fc=( 1, 1, 1 )))
 							 
 		# add a grid
 		plt.grid()
