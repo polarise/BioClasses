@@ -678,13 +678,11 @@ class Sequence( object ):
 		def index_of_mins( radians ):
 			indexes = list()
 			for r in radians:
-				"""
 				# allowing ( None, None, None ) to return 0
 				if r[0] == None and r[1] == None and r[2] == None:
 					index = None
 				else:
-				"""
-				index = r.index( min( r ))
+					index = r.index( min( r ))
 				indexes.append( index )
 			
 			return indexes
@@ -710,6 +708,7 @@ class Sequence( object ):
 						dgl_list2 ))
 			
 			# arccos values
+			#print vector_list
 			arccos0 = map( my_dot0, vector_list )
 			arccos1 = map( my_dot1, vector_list )
 			arccos2 = map( my_dot2, vector_list )
@@ -722,11 +721,20 @@ class Sequence( object ):
 			# radians
 			radians = zip( rad0, rad1, rad2 )
 			F.radians = radians
+			radian_sums = list()
+			for r in radians:
+				the_sum = 0
+				try:
+					the_sum = sum( r )
+				except TypeError:
+					the_sum = None
+				radian_sums.append( the_sum )
+			F.radian_sums = radian_sums
 			F.indexes = index_of_mins( radians )
 	
 	#*****************************************************************************
 	
-	def plot_differential_graded_likelihood( self, outfile=None, show_starts=False, show_signals=True, show_path_str=True, show_name=True ):
+	def plot_differential_graded_likelihood( self, outfile=None, show_starts=False, show_signals=True, show_path_str=True, show_name=True, show_ML=False ):
 		"""
 		Method to plot a sequence and its likelihood tributaries
 		"""
@@ -768,7 +776,7 @@ class Sequence( object ):
 		plt.plot( xk*3, val, linewidth=2 )
 		"""
 		
-		plt.xlim( 0, self.length + 60 )
+		plt.xlim( 0, self.length + 40 )
 		
 		# x- and y-labels
 		plt.xlabel( "Sequence position, $i$ (bp)" )
@@ -778,6 +786,7 @@ class Sequence( object ):
 		up = True
 		for path in self.paths:
 			F = self.frameshift_sequences
+			# only plot the name of the most_likely_frameshift
 			# note: path[1:]
 			# why? because starting with the first frame is pointless
 			x = numpy.linspace( 1, \
@@ -788,12 +797,12 @@ class Sequence( object ):
 			# add the indicator sequence
 			if show_path_str:
 				if up:
-					plt.annotate( "%s %s" % ( F[tuple( path[1:] )].path_str, F[tuple( path[1:] )].indexes ), xy=( self.length + 4, \
+					plt.annotate( F[tuple( path[1:] )].path_str, xy=( self.length + 4, \
 						F[tuple( path )].differential_graded_likelihood[-1] + 0.25 ), \
 							size='xx-small', horizontalalignment='left' )
 					up = False
 				else:
-					plt.annotate( "%s %s" % ( F[tuple( path[1:] )].path_str, F[tuple( path[1:] )].indexes ), xy=( self.length + 4, \
+					plt.annotate( F[tuple( path[1:] )].path_str, xy=( self.length + 4, \
 						F[tuple( path )].differential_graded_likelihood[-1] - 0.25 ), \
 							size='xx-small', horizontalalignment='left' )
 					up = True
@@ -858,9 +867,16 @@ class Sequence( object ):
 		# the sequence name (number of paths)
 		if show_name:
 			plt.annotate( "%s (%s paths)" % ( self.name, len( self.paths )), \
-				xy=( xmin + 0.05*( xmax - xmin ), ymax - 0.05*( ymax - ymin ) ), size='large', horizontalalignment='left',\
-					verticalalignment='top', bbox=dict( boxstyle="square", \
-						ec=( 1, .5, .5 ), fc=( 1, 1, 1 )))
+				xy=( xmin + 0.05*( xmax - xmin ), ymax - 0.05*( ymax - ymin ) ), \
+					size='large', horizontalalignment='left', verticalalignment='top', \
+						bbox=dict( boxstyle="square", ec=( 1, .5, .5 ), fc=( 1, 1, 1 )))
+		
+		if show_ML:
+			ML = self.most_likely_frameshift
+			plt.annotate( "MLFS: %s %s" % ( ML.path, ML.indexes ), \
+				xy=( xmin + 0.05*( xmax - xmin ), ymin + 0.15*( ymax - ymin ) ), \
+					size='small', horizontalalignment='left', verticalalignment='top', \
+						bbox=dict( boxstyle="square", ec=( 1, .5, .5 ), fc=( 1, 1, 1 )))
 							 
 		# add a grid
 		plt.grid()

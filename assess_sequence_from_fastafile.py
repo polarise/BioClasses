@@ -68,13 +68,13 @@ def main( fn, seq_name ):
 			s.get_most_likely_frameshift()
 			#print s.differential_graded_likelihood
 			s.get_indexes()
+			"""
 			for fs in s.frameshift_sequences:
 				print fs
 				print s.frameshift_sequences[fs].fragments
 				print s.frameshift_sequences[fs].signals
 				print s.frameshift_sequences[fs].radians
 				print s.frameshift_sequences[fs].indexes
-				"""
 				dgl_list = map( TM.differential_graded_likelihood, s.frameshift_sequences[fs].fragments ) # frame 0
 				dgl_list1 = map( lambda x: TM.differential_graded_likelihood( x[1:] ), s.frameshift_sequences[fs].fragments ) # frame 1
 				dgl_list2 = map( lambda x: TM.differential_graded_likelihood( x[2:] ), s.frameshift_sequences[fs].fragments ) # frame 2
@@ -92,15 +92,16 @@ def main( fn, seq_name ):
 				print map( my_dot2, vector_list ) # frame 2
 				print map( my_arccos, map( my_dot2, vector_list ))
 				print
-				"""
 				print
+				"""
 			print "Most likely frameshift:"
 			ML = s.most_likely_frameshift
 			print ML.path
-			print ML.path_str
 			print ML.indexes
+			print ML.radian_sums
+			print ML.signals
 			print
-			s.plot_differential_graded_likelihood( show_name=False )
+			s.plot_differential_graded_likelihood( show_name=True, show_starts=False, show_ML=True )
 			found = True
 			break
 	
