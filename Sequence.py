@@ -622,6 +622,110 @@ class Sequence( object ):
 			
 	#*****************************************************************************
 	
+	def get_indexes( self ):
+		"""
+		Method to determine likely frameshift sequences
+		for each frameshift sequence
+			for each fragment
+				compute the differential_graded_likelihood
+				compute the slope
+				create a vector of slopes for all three frames
+				compare the vector to ( 1, -1, -1 ), ( -1, 1, -1 ), and ( -1, -1, 1 )
+					to determine the right frame
+					we're looking for frameshifts in which adjacent frames match in
+					the zeroth frame
+		"""
+		# local functions
+		def my_dot0( v1 ):
+			"""
+			frame 0
+			"""
+			v2 = ( 1, -1, -1 )
+			try:
+				result = numpy.dot( v1, v2 )/numpy.linalg.norm( v1 )/numpy.linalg.norm( v2 )
+			except TypeError:
+				result = None
+			return result
+
+		def my_dot1( v1 ):
+			"""
+			frame 1
+			"""
+			v2 = ( -1, 1, -1 )
+			try:
+				result = numpy.dot( v1, v2 )/numpy.linalg.norm( v1 )/numpy.linalg.norm( v2 )
+			except TypeError:
+				result = None
+			return result
+
+		def my_dot2( v1 ):
+			"""
+			frame 2
+			"""
+			v2 = ( -1, -1, 1 )
+			try:
+				result = numpy.dot( v1, v2 )/numpy.linalg.norm( v1 )/numpy.linalg.norm( v2 )
+			except TypeError:
+				result = None
+			return result
+
+		def my_arccos( v ):
+			if v is not None:
+				return numpy.arccos( v )
+			else:
+				return None
+		
+		def index_of_mins( radians ):
+			indexes = list()
+			for r in radians:
+				"""
+				# allowing ( None, None, None ) to return 0
+				if r[0] == None and r[1] == None and r[2] == None:
+					index = None
+				else:
+				"""
+				index = r.index( min( r ))
+				indexes.append( index )
+			
+			return indexes
+		
+		radians = list()
+		
+		for fs in self.frameshift_sequences:
+			F = self.frameshift_sequences[fs]
+			# differential gradient likelihood in each frame
+			dgl_list0 = map( self.transition_matrix.differential_graded_likelihood, \
+				F.fragments )
+			dgl_list1 = map( lambda x: \
+				self.transition_matrix.differential_graded_likelihood( x[1:] ), \
+					F.fragments )
+			dgl_list2 = map( lambda x: \
+				self.transition_matrix.differential_graded_likelihood( x[2:] ), \
+					F.fragments )
+			
+			# slopes
+			vector_list = zip( map( self.transition_matrix.likelihood_slope, \
+				dgl_list0 ), map( self.transition_matrix.likelihood_slope, \
+					dgl_list1 ), map( self.transition_matrix.likelihood_slope, \
+						dgl_list2 ))
+			
+			# arccos values
+			arccos0 = map( my_dot0, vector_list )
+			arccos1 = map( my_dot1, vector_list )
+			arccos2 = map( my_dot2, vector_list )
+			
+			# angles in radians
+			rad0 = map( my_arccos, arccos0 )
+			rad1 = map( my_arccos, arccos1 )
+			rad2 = map( my_arccos, arccos2 )
+			
+			# radians
+			radians = zip( rad0, rad1, rad2 )
+			F.radians = radians
+			F.indexes = index_of_mins( radians )
+	
+	#*****************************************************************************
+	
 	def plot_differential_graded_likelihood( self, outfile=None, show_starts=False, show_signals=True, show_path_str=True, show_name=True ):
 		"""
 		Method to plot a sequence and its likelihood tributaries
@@ -664,7 +768,7 @@ class Sequence( object ):
 		plt.plot( xk*3, val, linewidth=2 )
 		"""
 		
-		plt.xlim( 0, self.length + 40 )
+		plt.xlim( 0, self.length + 60 )
 		
 		# x- and y-labels
 		plt.xlabel( "Sequence position, $i$ (bp)" )
@@ -681,14 +785,15 @@ class Sequence( object ):
 					len( F[tuple( path )].graded_likelihood ))
 			plt.plot( x*3, F[tuple( path )].differential_graded_likelihood )
 			# write the shift sequence at the end
+			# add the indicator sequence
 			if show_path_str:
 				if up:
-					plt.annotate( F[tuple( path[1:] )].path_str, xy=( self.length + 4, \
+					plt.annotate( "%s %s" % ( F[tuple( path[1:] )].path_str, F[tuple( path[1:] )].indexes ), xy=( self.length + 4, \
 						F[tuple( path )].differential_graded_likelihood[-1] + 0.25 ), \
 							size='xx-small', horizontalalignment='left' )
 					up = False
 				else:
-					plt.annotate( F[tuple( path[1:] )].path_str, xy=( self.length + 4, \
+					plt.annotate( "%s %s" % ( F[tuple( path[1:] )].path_str, F[tuple( path[1:] )].indexes ), xy=( self.length + 4, \
 						F[tuple( path )].differential_graded_likelihood[-1] - 0.25 ), \
 							size='xx-small', horizontalalignment='left' )
 					up = True

@@ -81,7 +81,7 @@ class TransitionMatrix( object ):
 				loglikelihood += self.probability( codon, next_codon, loglik )
 				i += 3
 			return loglikelihood
-		else:
+		else: # potential problem naming a variable like the function!!!
 			likelihood = 1
 			i = 0
 			while i <= len( sequence ) - 6:
@@ -105,7 +105,7 @@ class TransitionMatrix( object ):
 				graded_loglikelihood.append( loglikelihood )
 				i += 3
 			return graded_loglikelihood
-		else:
+		else: # potential problem naming a variable like the function!!!
 			graded_likelihood = list()
 			likelihood = 1
 			i = 0
@@ -125,11 +125,24 @@ class TransitionMatrix( object ):
 			graded_loglikelihood = self.graded_likelihood( sequence, loglik )
 			diff_graded_loglikelihood = [ graded_loglikelihood[i] + ( i + 1 )*math.log( 64 ) for i in xrange( len( graded_loglikelihood ))]
 			return diff_graded_loglikelihood
-		else:
+		else: # potential problem naming a variable like the function!!!
 			diff_graded_likelihood = list()
 			graded_likelihood = self.graded_likelihood( sequence )
 			diff_graded_likelihood = [ 64**( i + 1 )*graded_likelihood[i]]
-			return diff_graded_likelihood			
+			return diff_graded_likelihood
+		
+	#*****************************************************************************
+	
+	def likelihood_slope( self, dgl ):
+		"""
+		dgl = a differential gradient likelihood list
+		"""
+		if len( dgl ) == 0:
+			return None
+		elif len( dgl ) == 1:
+			return 0
+		else:
+			return ( dgl[-1] - dgl[0] )/len( dgl )
 	
 	#*****************************************************************************
 	

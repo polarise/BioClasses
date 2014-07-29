@@ -14,6 +14,8 @@ class FrameshiftSequence( object ):
 		self.likelihood = None
 		self.graded_likelihood = None
 		self.differential_graded_likelihood = None
+		self.radians = None
+		self.indexes = None
 	
 	#*****************************************************************************
 	
