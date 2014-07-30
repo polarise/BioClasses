@@ -55,7 +55,7 @@ def main( fn, seq_name ):
 		if seq_record.id == seq_name:
 			sequence = str( seq_record.seq )
 			s = Sequence( sequence=sequence, name=seq_name )
-			s.truncate( effect_truncation=True )
+			s.truncate( effect_truncation=True, verbose=False )
 			no_of_leaves = s.count_leaves()
 			if no_of_leaves > 1000:
 				print >> sys.stderr, "Complex tree with %s leaves...omitting." % no_of_leaves
@@ -94,6 +94,7 @@ def main( fn, seq_name ):
 				print
 				print
 				"""
+			"""
 			print "Most likely frameshift:"
 			ML = s.most_likely_frameshift
 			print ML.path
@@ -101,7 +102,14 @@ def main( fn, seq_name ):
 			print ML.radian_sums
 			print ML.signals
 			print
-			s.plot_differential_graded_likelihood( show_name=True, show_starts=False, show_ML=True )
+			ML.find_frameshift_sites()
+			for fss in ML.frameshift_sites:
+				FS = ML.frameshift_sites[fss]
+				print "\t".join( map( str, [ FS.signal, FS.initial_frame, \
+					FS.final_frame, FS.position, FS.designation, FS.probability, FS.radians_vector ]))
+			"""
+			s.repr_frameshift_sites( include_nulls=False )
+			#s.plot_differential_graded_likelihood( show_name=True, show_starts=False, show_ML=True )
 			found = True
 			break
 	

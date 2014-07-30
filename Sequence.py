@@ -193,6 +193,25 @@ class Sequence( object ):
 								"None", "None" ])
 	
 	#*****************************************************************************
+	
+	def repr_frameshift_sites( self, sep="\t", include_nulls=True ):
+		if self.most_likely_frameshift is None:
+			self.get_most_likely_frameshift()
+		if self.most_likely_frameshift is not None:
+			self.most_likely_frameshift.find_frameshift_sites()
+			ML = self.most_likely_frameshift
+			ML.find_frameshift_sites()
+			if len( ML.frameshift_sites ) == 0 and include_nulls:
+				print sep.join( map( str, [ self.name, ML.length, ML.likelihood, \
+					None, None, None, None, None, None, None ] ))
+			else:
+				for fss in ML.frameshift_sites:
+					FS = ML.frameshift_sites[fss]
+					print sep.join( map( str, [ self.name, ML.length, ML.likelihood, \
+						FS.signal, FS.initial_frame, FS.final_frame, FS.designation, \
+							FS.position, FS.probability, FS.radians_vector ] ))			
+	
+	#*****************************************************************************
 		
 	def info( self, comment="" ):
 		raise NotImplementedError

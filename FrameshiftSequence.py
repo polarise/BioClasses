@@ -2,6 +2,7 @@
 from __future__ import division
 import math
 from TransitionMatrix import *
+from FrameshiftSite import *
 
 class FrameshiftSequence( object ):
 	def __init__( self, sequence, path ):
@@ -17,6 +18,7 @@ class FrameshiftSequence( object ):
 		self.radians = None
 		self.radian_sums = None
 		self.indexes = None
+		self.frameshift_sites = dict()
 	
 	#*****************************************************************************
 	
@@ -71,3 +73,26 @@ Log-likelihood:        %s"""\
 		fragments[-1] += sequence[-1]
 				
 		return frameshifted_sequence, fragments, frameshift_signals[:-1]
+	
+	#*****************************************************************************
+	
+	def find_frameshift_sites( self ):
+		def frameshift_probability( x, L ):
+			"""
+			triangular function
+			P( frameshift ) is maximum in the middle and decreases to the edges
+			"""
+			if x < L/2:
+				return x/(L/2)
+			else:
+				return ( L - x )/(L/2)
+			
+		for i in xrange( len( self.indexes ) - 1 ):
+			if self.indexes[i] == 0 and self.indexes[i + 1] == 0:
+				initial_node = self.path[i]
+				final_node = self.path[i+1]
+				signal = self.signals[i]
+				radians_vector = self.radians[i]
+				probability = frameshift_probability( initial_node[1], self.length )
+				self.frameshift_sites[initial_node] = FrameshiftSite( initial_node, \
+					final_node, signal, probability, radians_vector )		
