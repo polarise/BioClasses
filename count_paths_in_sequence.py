@@ -13,10 +13,10 @@ from GeneticCode import *
 
 def main( fn ):
 	TM = TransitionMatrix()
-	TM.read( "euplotid_transition_matrix.pic" )
+	TM.read( "transition_matrices/homo_transition_matrix.pic" )
 	
-	G = GeneticCode( "euplotid_genetic_code.txt" )
-	G.read_CAI_table( "euplotid_CAI_table.txt" )
+	#G = GeneticCode( "genetic_codes/tetrahymena_genetic_code.txt" )
+	#G.read_CAI_table( "euplotid_CAI_table.txt" )
 	
 	c = 0
 	for seq_record in SeqIO.parse( fn, "fasta" ):
@@ -25,7 +25,7 @@ def main( fn ):
 		seq_name = seq_record.id
 		
 		# first we check whether we will be able to build the tree
-		s = Sequence( sequence )
+		s = Sequence( sequence=sequence, name=seq_name, stops=[ 'TAA', 'TAG', 'TGA' ] )
 		s.truncate()
 		s.get_stop_sequence()
 		s.sanitise_stop_sequence()

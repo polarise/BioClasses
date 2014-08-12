@@ -10,7 +10,7 @@ Alanine	Ala	A	GCU,GCC,GCA,GCG
 Tyrosine	Tyr	Y	UAU,UAC
 Stop	-	O	UAA,UAG
 Histidine	His	H	CAU,CAC
-Glutamine	Glu	Q	CAA,CAG
+Glutamine	Gln	Q	CAA,CAG
 Asparagine	Asn	N	AAU,AAC
 Lysine	Lys	K	AAA,AAG
 Aspartic acid	Asp	D	GAU,GAC

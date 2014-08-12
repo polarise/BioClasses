@@ -56,6 +56,7 @@ class Sequence( object ):
 		self.differential_graded_likelihood = None # frame 0
 		self.differential_graded_likelihood_ = None # frame 1
 		self.differential_graded_likelihood__ = None # frame 2
+		self.gradient = None
 		
 		self.binary_codon_matrix = None
 		
@@ -112,6 +113,7 @@ class Sequence( object ):
 		"""
 		self.start_pos = None
 		self.start_pos = self.sequence.find( start_from )
+		
 		if effect_truncation: 
 			if self.start_pos < 0:
 				if verbose:
@@ -126,10 +128,14 @@ class Sequence( object ):
 				self.length = len( self.sequence )
 				self.start_pos = 0
 				return 0
-		else:
+		else: # What if there is not 'start'? - fixed PK 20140806
 			if verbose:
-				print >> sys.stderr, "Not effecting truncation but return position of first start (ATG)..."
-			return self.start_pos
+				if self.start_pos < 0:
+					print >> sys.stderr, "Warning: unable to find %s signal... using whole sequence." % start_from
+					return None
+				else:
+					print >> sys.stderr, "Not effecting truncation but return position of first start (ATG)..."
+					return self.start_pos
 	
 	#*****************************************************************************
 	
@@ -209,7 +215,7 @@ class Sequence( object ):
 					FS = ML.frameshift_sites[fss]
 					print sep.join( map( str, [ self.name, ML.length, ML.likelihood, \
 						FS.signal, FS.initial_frame, FS.final_frame, FS.designation, \
-							FS.position, FS.probability, FS.radians_vector ] ))			
+							FS.position, FS.position_score, FS.radians_vector ] ))			
 	
 	#*****************************************************************************
 		
@@ -597,6 +603,12 @@ class Sequence( object ):
 	
 	#*****************************************************************************
 	
+	def estimate_gradient( self ):
+		self.gradient = self.differential_graded_likelihood[-1]/self.length
+		return self.gradient
+	
+	#*****************************************************************************
+	
 	def get_most_likely_frameshift( self ):
 		max_likelihood = None
 		min_likelihood = None
@@ -660,6 +672,7 @@ class Sequence( object ):
 			frame 0
 			"""
 			v2 = ( 1, -1, -1 )
+			#v2 = ( 1, -0.5, -0.5 )
 			try:
 				result = numpy.dot( v1, v2 )/numpy.linalg.norm( v1 )/numpy.linalg.norm( v2 )
 			except TypeError:
@@ -671,6 +684,7 @@ class Sequence( object ):
 			frame 1
 			"""
 			v2 = ( -1, 1, -1 )
+			#v2 = ( -0.5, 1, -0.5 )
 			try:
 				result = numpy.dot( v1, v2 )/numpy.linalg.norm( v1 )/numpy.linalg.norm( v2 )
 			except TypeError:
@@ -682,6 +696,7 @@ class Sequence( object ):
 			frame 2
 			"""
 			v2 = ( -1, -1, 1 )
+			#v2 = ( -0.5, -0.5, 1 )
 			try:
 				result = numpy.dot( v1, v2 )/numpy.linalg.norm( v1 )/numpy.linalg.norm( v2 )
 			except TypeError:
@@ -750,9 +765,8 @@ class Sequence( object ):
 				radian_sums.append( the_sum )
 			F.radian_sums = radian_sums
 			F.indexes = index_of_mins( radians )
-	
+		
 	#*****************************************************************************
-	
 	def plot_differential_graded_likelihood( self, outfile=None, show_starts=False, show_signals=True, show_path_str=True, show_name=True, show_ML=False ):
 		"""
 		Method to plot a sequence and its likelihood tributaries

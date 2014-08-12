@@ -16,16 +16,72 @@ class TransitionMatrix( object ):
 		self.transition_probabilities = dict()
 	
 	#*****************************************************************************
+	
+	def __repr__( self ):
+		data = ""
+		keys = self.transition_probabilities.keys()
+		keys.sort()
+		data += " " + " ".join( keys ) + "\n"
+		for codon in keys:
+			row = [ codon ]
+			for next_codon in keys:
+				row.append( "%.3f" % self.transition_probabilities[codon][next_codon] )
+			data += " ".join( row ) + "\n"
+		
+		return data
+	
+	#*****************************************************************************
+	
+	def row_sums( self ):
+		keys = self.transition_probabilities.keys()
+		keys.sort()
+		
+		for k in keys:
+			print k, sum( self.transition_probabilities[k].values() )
+	
+	#*****************************************************************************
+	
+	def col_sums( self ):
+		keys = self.transition_probabilities.keys()
+		keys.sort()
+		
+		for k in keys:
+			colsum = 0
+			for l in keys:
+				colsum += self.transition_probabilities[l][k]
+			print k, colsum
+	
+	#*****************************************************************************
+	
+	def all_sum( self ):
+		keys = self.transition_probabilities.keys()
+		keys.sort()
+		
+		sum = 0
+		for k in keys:
+			for l in keys:
+				sum += self.transition_probabilities[k][l]
+		
+		print sum
+		
+	#*****************************************************************************
 		
 	def build( self, fastafile ):
 		# count the transitions
 		self.transition_counts = dict()
 		for seq_record in SeqIO.parse( fastafile, "fasta" ):
 			sequence = str( seq_record.seq )
+			if sequence[:3] == "Seq":
+				print >> sys.stderr, "Warning: for %s sequence is unavailable..." % seq_record.id
+				continue
 			i = 0
 			while i <= len( sequence ) - 6:
 				codon = sequence[i:i+3]
 				next_codon = sequence[i+3:i+6]
+				if codon.find( "N" ) >= 0 or next_codon.find( "N" ) >= 0 or \
+					codon.find( "R" ) >= 0 or next_codon.find( "R" ) >= 0: # we have 'N' or 'R' (?)
+					print >> sys.stderr, "Warning: found 'N'... truncating CDS."
+					break # break because they will mess the reading frame!!! :-(
 				if codon not in self.transition_counts:
 					self.transition_counts[codon] = dict()
 				if next_codon not in self.transition_counts[codon]:

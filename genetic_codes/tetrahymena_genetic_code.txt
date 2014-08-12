@@ -8,9 +8,9 @@ Proline	Pro	P	CCU,CCC,CCA,CCG
 Threonine	Thr	T	ACU,ACC,ACA,ACG
 Alanine	Ala	A	GCU,GCC,GCA,GCG
 Tyrosine	Tyr	Y	UAU,UAC
-Stop	-	O	UAA,UAG,UGA
+Stop	-	O	UGA
 Histidine	His	H	CAU,CAC
-Glutamine	Glu	Q	CAA,CAG
+Glutamine	Gln	Q	CAA,CAG,UAA,UAG
 Asparagine	Asn	N	AAU,AAC
 Lysine	Lys	K	AAA,AAG
 Aspartic acid	Asp	D	GAU,GAC

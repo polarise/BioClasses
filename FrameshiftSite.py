@@ -3,7 +3,7 @@ from __future__ import division
 import sys
 
 class FrameshiftSite( object ):
-	def __init__( self, initial_node, final_node, signal, probability, radians_vector ):
+	def __init__( self, initial_node, final_node, signal, position_score, radians_vector ):
 		self.initial_frame = initial_node[0]
 		self.final_frame = final_node[0]
 		self.position = initial_node[1]
@@ -11,11 +11,11 @@ class FrameshiftSite( object ):
 		if desig == 1:
 			self.designation = "+1"
 		elif desig == 2:
-			self.designation = "+2"
+			self.designation = "-1"
 		elif desig == -1:
 			self.designation = "-1"
 		elif desig == -2:
-			self.designation = "-2"
+			self.designation = "+1"
 		self.signal = signal
-		self.probability = "%.4f" % probability
+		self.position_score = "%.4f" % position_score
 		self.radians_vector = "%.4f\t%.4f\t%.4f" % radians_vector

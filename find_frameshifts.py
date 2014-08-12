@@ -14,19 +14,21 @@ from Bio import SeqIO
 
 def main( fn, count ):
 	TM = TransitionMatrix()
-	TM.read( "euplotid_transition_matrix.pic" )
-	pdf = PdfPages( "found_frameshifts.pdf" )
+	TM.read( "transition_matrices/homo_transition_matrix.pic" )
+	pdf = PdfPages( "found_frameshifts_Hsap.pdf" )
 	c = 0
 	for seq_record in SeqIO.parse( fn, "fasta" ):
 		if c >= count:
 			break
 		sequence = str( seq_record.seq )
 		seq_name = seq_record.id
-		s = Sequence( sequence=sequence, name=seq_name )
+		#s = Sequence( sequence=sequence, name=seq_name, stops=[ 'TGA' ] ) # Tthermophila
+		s = Sequence( sequence=sequence, name=seq_name, stops=[ 'TAA', 'TAG', 'TGA' ] ) # Us
 		s.truncate( effect_truncation=True, verbose=False )
 		no_of_leaves = s.count_leaves()
 		if no_of_leaves > 1000:
-			print >> sys.stderr, "Complex tree with %s leaves...omitting." % no_of_leaves
+			print >> sys.stderr, "Complex tree with %s leaves...omitting." % \
+				no_of_leaves
 			continue
 		s.set_transition_matrix( TM )
 		s.build_tree()
@@ -40,6 +42,8 @@ def main( fn, count ):
 			if len( s.most_likely_frameshift.frameshift_sites ) > 0:
 				s.plot_differential_graded_likelihood( outfile=pdf, show_name=True, \
 					show_starts=False, show_ML=True )
+				#s.plot_differential_graded_likelihood( show_name=True, \
+					#show_starts=False, show_ML=True )
 		c += 1
 	pdf.close()
 
@@ -47,7 +51,7 @@ if __name__ == "__main__":
 	try:
 		fn = sys.argv[1]
 		try:
-			count = sys.argv[2]
+			count = int( sys.argv[2] )
 		except IndexError:
 			count = 10
 	except IndexError:

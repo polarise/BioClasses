@@ -25,6 +25,9 @@ class GeneticCode( object ):
 	def build_CAI_table( self, cds_file, DNA=True ):
 		for seq_record in SeqIO.parse( cds_file, "fasta" ):
 			sequence = str( seq_record.seq )
+			if sequence[:3] == "Seq":
+				print >> sys.stderr, "Sequence unavailable for %s..." % seq_record.id
+				continue
 			if DNA:
 				sequence = sequence.replace( "T", "U" ) # convert DNA to RNA
 			else:
@@ -32,6 +35,9 @@ class GeneticCode( object ):
 			i = 0
 			while i <= len( sequence ) - 3:
 				codon = sequence[i:i+3]
+				if codon.find( "N" ) >= 0 or codon.find( "R" ) >= 0:
+					print >> sys.stderr, "Warning: founding wrong base in codon..."
+					break
 				aa = self.codons[codon]
 				self.amino_acids[aa].count_codon( codon )
 				i += 3

@@ -109,7 +109,7 @@ def main( fn, seq_name ):
 					FS.final_frame, FS.position, FS.designation, FS.probability, FS.radians_vector ]))
 			"""
 			s.repr_frameshift_sites( include_nulls=False )
-			#s.plot_differential_graded_likelihood( show_name=True, show_starts=False, show_ML=True )
+			s.plot_differential_graded_likelihood( show_name=True, show_starts=False, show_ML=True )
 			found = True
 			break
 	

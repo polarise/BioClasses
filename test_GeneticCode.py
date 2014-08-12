@@ -6,7 +6,12 @@ from Sequence import *
 def main( gc ):	
 	G = GeneticCode( gc )
 	# G.build_CAI_table( "/Users/paulkorir/Dropbox/Euplotes/FrameshiftPredictionData/E.crassus_CDS.fasta" )
+	G.build_CAI_table( "/home/paul/bioinf/Resources/H_sapiens/H_sapiens_Ens75_CDS.fasta" )
 	#G.build_CAI_table( "a_fasta.fa" )
+	G.write_CAI_table( "CAI_tables/homo_CAI_table.txt" )
+	
+	sys.exit( 0 )
+	
 	# G.write_CAI_table( "euplotid_CAI_table.txt" )
 	#G.write_CAI_table( "test_CAI_table.txt" )
 	G.read_CAI_table( "euplotid_CAI_table.txt" )

@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 from __future__ import division
 import math
-from TransitionMatrix import *
 from FrameshiftSite import *
 
 class FrameshiftSequence( object ):
@@ -19,6 +18,8 @@ class FrameshiftSequence( object ):
 		self.radian_sums = None
 		self.indexes = None
 		self.frameshift_sites = dict()
+		self.GC_content = None
+		self.gradient = None
 	
 	#*****************************************************************************
 	
@@ -77,7 +78,7 @@ Log-likelihood:        %s"""\
 	#*****************************************************************************
 	
 	def find_frameshift_sites( self ):
-		def frameshift_probability( x, L ):
+		def frameshift_position_score( x, L ):
 			"""
 			triangular function
 			P( frameshift ) is maximum in the middle and decreases to the edges
@@ -93,6 +94,18 @@ Log-likelihood:        %s"""\
 				final_node = self.path[i+1]
 				signal = self.signals[i]
 				radians_vector = self.radians[i]
-				probability = frameshift_probability( initial_node[1], self.length )
+				position_score = frameshift_position_score( initial_node[1], self.length )
 				self.frameshift_sites[initial_node] = FrameshiftSite( initial_node, \
-					final_node, signal, probability, radians_vector )		
+					final_node, signal, position_score, radians_vector )
+				
+	#*****************************************************************************
+	def estimate_GC_content( self ):
+		self.GC_content = ( self.frameshifted_sequence.count( "C" ) + \
+			self.frameshifted_sequence.count( "G" ))/self.length
+		return self.GC_content
+	
+	#*****************************************************************************
+	def estimate_gradient( self ):
+		self.gradient = self.differential_graded_likelihood[-1]/self.length
+		return self.gradient
+	
