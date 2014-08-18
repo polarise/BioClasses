@@ -6,6 +6,7 @@ import random
 import numpy
 import scipy.stats
 import matplotlib.pyplot as plt
+from Utils import *
 
 def SG_filter5( inData ):
 	outData = list()
@@ -53,22 +54,36 @@ def SG_filter7_prime( inData ):
 
 def main():
 	x = numpy.linspace( 0, 1, 1000 )
+	x = numpy.linspace( -2*numpy.pi, 2*numpy.pi, 100 )
+	"""
 	y = [ 0 ]
 	for i in xrange( len( x )-1 ):
 		y.append( y[i] + scipy.stats.norm.rvs( loc=0, scale=10 ))
+	"""
+	y = numpy.sin( x )
 	
 	z = SG_filter5( y )
 	z_prime = SG_filter5_prime( y )
 	u = SG_filter7( y )
 	u_prime = SG_filter7_prime( y )
 	
-	plt.plot( x, y )
-	plt.plot( x, z, color="r", linewidth=2 )
-	plt.plot( x, u, color="r", linestyle=":", linewidth=1 )
-	plt.plot( x, z_prime, color="m", linewidth=1 )
-	plt.plot( x, u_prime, color="m", linestyle=":", linewidth=1 )
-	plt.grid()
-	plt.show()
+	z = savgol( y, window_size=5 )
+	z_prime = savgol( y, window_size=5, deriv=1 )
+	
+	fig, ( ax1, ax2 ) = plt.subplots( nrows=2, sharex=True )
+	
+	l1 = ax1.plot( x, y )
+	l2 = ax1.plot( x, savgol( y, window_size=5 ), color="r", linewidth=2 )
+	
+	ax1.grid()
+	
+	l3 = ax2.plot( x, savgol( y, window_size=9, deriv=1 ), color="m", linewidth=1 )
 
+	ax2.grid()
+	
+	fig.subplots_adjust( hspace=0.2 )
+	
+	plt.show()	
+	
 if __name__ == "__main__":
 	main()

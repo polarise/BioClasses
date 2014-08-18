@@ -15,6 +15,7 @@ from TransitionMatrix import *
 import numpy
 import matplotlib.pyplot as plt
 from LeafCounter import *
+from Utils import *
 
 class Sequence( object ):
 	"""
