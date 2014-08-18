@@ -48,7 +48,7 @@ def my_arccos( v ):
 
 def main( fn, seq_name ):
 	TM = TransitionMatrix()
-	TM.read( "euplotid_transition_matrix.pic" )
+	TM.read( "transition_matrices/euplotid_transition_matrix.pic" )
 	# find the sequence we're looking for
 	found = False
 	for seq_record in SeqIO.parse( fn, "fasta" ):

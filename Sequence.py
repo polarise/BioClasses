@@ -772,30 +772,41 @@ class Sequence( object ):
 		"""
 		Method to plot a sequence and its likelihood tributaries
 		"""
+		fig = plt.figure()
+		
+		left, width = 0.1, 0.8
+		
+		# left, bottom, width, height
+		rect1 = [ left, 0.3, width, 0.6 ]
+		rect2 = [ left, 0.1, width, 0.25 ]
+		
+		ax1 = fig.add_axes( rect1 )
+		ax2 = fig.add_axes( rect2, sharex=ax1 )
+		
 		# frame 0
 		x = numpy.linspace( 1, len( self.graded_likelihood ), \
 			len( self.graded_likelihood )  )
-		plt.plot( x*3, self.differential_graded_likelihood, ":", color='r', \
+		ax1.plot( x*3, self.differential_graded_likelihood, ":", color='r', \
 			linewidth=1.5 )
-		plt.annotate( "No shift (fr 0)", xy=( self.length + 4, \
+		ax1.annotate( "No shift (fr 0)", xy=( self.length + 4, \
 			self.differential_graded_likelihood[-1] ), size='x-small', \
 				horizontalalignment='left' )
 		
 		# frame 1
 		x1 = numpy.linspace( 1, len( self.graded_likelihood_ ), \
 			len( self.graded_likelihood_ ))
-		plt.plot( x1*3 + 1, self.differential_graded_likelihood_, ":", color='g', \
+		ax1.plot( x1*3 + 1, self.differential_graded_likelihood_, ":", color='g', \
 			linewidth=1.5 )
-		plt.annotate( "No shift (fr 1)", xy=( self.length + 4, \
+		ax1.annotate( "No shift (fr 1)", xy=( self.length + 4, \
 			self.differential_graded_likelihood_[-1] ), size='x-small', \
 				horizontalalignment='left' )
 		
 		# frame 2
 		x2 = numpy.linspace( 1, len( self.graded_likelihood__ ), \
 			len( self.graded_likelihood__ ))
-		plt.plot( x2*3 + 2, self.differential_graded_likelihood__, ":", color='b', \
+		ax1.plot( x2*3 + 2, self.differential_graded_likelihood__, ":", color='b', \
 			linewidth=1.5 )
-		plt.annotate( "No shift (fr 2)", xy=( self.length + 4, \
+		ax1.annotate( "No shift (fr 2)", xy=( self.length + 4, \
 			self.differential_graded_likelihood__[-1] ), size='x-small', \
 				horizontalalignment='left' )
 		
@@ -810,11 +821,11 @@ class Sequence( object ):
 		plt.plot( xk*3, val, linewidth=2 )
 		"""
 		
-		plt.xlim( 0, self.length + 40 )
+		ax1.set_xlim(( 0, self.length + 40 ))
 		
 		# x- and y-labels
-		plt.xlabel( "Sequence position, $i$ (bp)" )
-		plt.ylabel( r"$\Delta l_{\mathrm{cum}}(i|Q)$" )
+		ax1.set_xlabel( "Sequence position, $i$ (bp)" )
+		ax1.set_ylabel( r"$\Delta l_{\mathrm{cum}}(i|Q)$" )
 		
 		# the frameshift sequences
 		up = True
@@ -826,17 +837,17 @@ class Sequence( object ):
 			x = numpy.linspace( 1, \
 				len( F[tuple( path[1:] )].differential_graded_likelihood ), \
 					len( F[tuple( path )].graded_likelihood ))
-			plt.plot( x*3, F[tuple( path )].differential_graded_likelihood )
+			ax1.plot( x*3, F[tuple( path )].differential_graded_likelihood )
 			# write the shift sequence at the end
 			# add the indicator sequence
 			if show_path_str:
 				if up:
-					plt.annotate( F[tuple( path[1:] )].path_str, xy=( self.length + 4, \
+					ax1.annotate( F[tuple( path[1:] )].path_str, xy=( self.length + 4, \
 						F[tuple( path )].differential_graded_likelihood[-1] + 0.25 ), \
 							size='xx-small', horizontalalignment='left' )
 					up = False
 				else:
-					plt.annotate( F[tuple( path[1:] )].path_str, xy=( self.length + 4, \
+					ax1.annotate( F[tuple( path[1:] )].path_str, xy=( self.length + 4, \
 						F[tuple( path )].differential_graded_likelihood[-1] - 0.25 ), \
 							size='xx-small', horizontalalignment='left' )
 					up = True
@@ -848,28 +859,28 @@ class Sequence( object ):
 		if show_signals:
 			for i in xrange( len( self.frameshift_signals )):
 				# vertical dashed frameshift signal markers
-				plt.axvline( self.unique_stop_sequence[i][1], color=( .5, .5, .5 ), \
+				ax1.axvline( self.unique_stop_sequence[i][1], color=( .5, .5, .5 ), \
 					linestyle="dashed" )
 				# the frame
 				if i == 0:
-					plt.annotate( self.unique_stop_sequence[i][0], \
+					ax1.annotate( self.unique_stop_sequence[i][0], \
 						xy=( self.unique_stop_sequence[i][1]/2, ymin + 3 ), size='x-small', \
 							color=( 0.5, 0.5, 0.5 ), horizontalalignment='center' )
 				else:
-					plt.annotate( self.unique_stop_sequence[i][0], \
+					ax1.annotate( self.unique_stop_sequence[i][0], \
 						xy=( self.unique_stop_sequence[i-1][1] + \
 							( self.unique_stop_sequence[i][1] - \
 								self.unique_stop_sequence[i-1][1] )/2, ymin + 3 ), \
 									size='x-small', color=( 0.5, 0.5, 0.5 ), \
 										horizontalalignment='center' )
 				# frameshift signal
-				plt.annotate( self.frameshift_signals[i], \
+				ax1.annotate( self.frameshift_signals[i], \
 					xy=( self.unique_stop_sequence[i][1], ymax ), rotation=90, \
 						size='x-small', horizontalalignment='right', \
 							verticalalignment='right' )
 		
 		# terminal region
-		plt.axvline( self.length - 1, color='r', linestyle="dashed" )
+		ax1.axvline( self.length - 1, color='r', linestyle="dashed" )
 	
 		# mark the position of the first start (ATG)
 		#if self.start_pos >= 0:
@@ -883,37 +894,56 @@ class Sequence( object ):
 			if len( self.start_sequence ) > 0:
 				for fr,pos in self.start_sequence:
 					if fr == 0:
-						plt.axvline( pos, color='r', linestyle='dashed' )
-						plt.annotate( "ATG[0]", xy=( pos, ymax ), rotation=90,\
+						ax1.axvline( pos, color='r', linestyle='dashed' )
+						ax1.annotate( "ATG[0]", xy=( pos, ymax ), rotation=90,\
 							size='x-small', color='r', horizontalalignment='right',\
 								verticalalignment='right' )
 					elif fr == 1:
-						plt.axvline( pos, color='g', linestyle='dashed' )
-						plt.annotate( "ATG[1]", xy=( pos, ymax ), rotation=90,\
+						ax1.axvline( pos, color='g', linestyle='dashed' )
+						ax1.annotate( "ATG[1]", xy=( pos, ymax ), rotation=90,\
 							size='x-small', color='g', horizontalalignment='right',\
 								verticalalignment='right' )
 					elif fr == 2:
-						plt.axvline( pos, color='b', linestyle='dashed' )
-						plt.annotate( "ATG[2]", xy=( pos, ymax ), rotation=90,\
+						ax1.axvline( pos, color='b', linestyle='dashed' )
+						ax1.annotate( "ATG[2]", xy=( pos, ymax ), rotation=90,\
 							size='x-small', color='b', horizontalalignment='right',\
 								verticalalignment='right' )
 		
 		# the sequence name (number of paths)
 		if show_name:
-			plt.annotate( "%s (%s paths)" % ( self.name, len( self.paths )), \
+			ax1.annotate( "%s (%s paths)" % ( self.name, len( self.paths )), \
 				xy=( xmin + 0.05*( xmax - xmin ), ymax - 0.05*( ymax - ymin ) ), \
 					size='large', horizontalalignment='left', verticalalignment='top', \
 						bbox=dict( boxstyle="square", ec=( 1, .5, .5 ), fc=( 1, 1, 1 )))
 		
 		if show_ML:
 			ML = self.most_likely_frameshift
-			plt.annotate( "MLFS: %s %s" % ( ML.path, ML.indexes ), \
+			ax1.annotate( "MLFS: %s %s" % ( ML.path, ML.indexes ), \
 				xy=( xmin + 0.05*( xmax - xmin ), ymin + 0.15*( ymax - ymin ) ), \
 					size='small', horizontalalignment='left', verticalalignment='top', \
 						bbox=dict( boxstyle="square", ec=( 1, .5, .5 ), fc=( 1, 1, 1 )))
 							 
 		# add a grid
-		plt.grid()
+		ax1.grid()
+		
+		# the filtered gradient plot
+		xml = numpy.linspace( 1, len( self.most_likely_frameshift.differential_graded_likelihood ), \
+			len( self.most_likely_frameshift.differential_graded_likelihood ))
+		#print >> sys.stderr, len( xml ), self.most_likely_frameshift.length, len( self.most_likely_frameshift.differential_graded_likelihood )
+		ax2.plot( xml*3, savgol( self.most_likely_frameshift.differential_graded_likelihood, \
+			window_size=7, deriv=1 ))
+		
+		if show_signals:
+			for i in xrange( len( self.most_likely_frameshift.path )):
+				# vertical dashed frameshift signal markers
+				ax2.axvline( self.most_likely_frameshift.path[i][1], color='r', \
+					linestyle="dashed" )
+		
+		# add a grid
+		ax2.grid()
+		
+		# space between plots
+		fig.subplots_adjust( hspace=0.1 )
 		
 		if outfile is not None:
 			outfile.savefig()

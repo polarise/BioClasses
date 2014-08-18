@@ -34,8 +34,8 @@ def main( fn ):
 		s.get_most_likely_frameshift()
 		if s.most_likely_frameshift is not None:
 			if 1 < len( s.most_likely_frameshift.path ) < 4:
-				s.plot_differential_graded_likelihood( outfile=pdf, show_path_str=True )
-				#s.plot_differential_graded_likelihood()
+				#s.plot_differential_graded_likelihood( outfile=pdf, show_path_str=True )
+				s.plot_differential_graded_likelihood()
 				b += 1
 		c += 1
 	pdf.close()
