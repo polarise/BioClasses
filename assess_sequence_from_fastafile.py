@@ -12,40 +12,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from Bio import SeqIO
 
-def my_dot0( v1 ):
-	v2 = ( 1, -1, -1 )
-	try:
-		#result = ( v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2] )/( math.sqrt( v1[0]**2 + v1[1]**2 + v1[2]**2 )*math.sqrt( v2[0]**2 + v2[1]**2 + v2[2]**2 ))
-		result = numpy.dot( v1, v2 )/numpy.linalg.norm( v1 )/numpy.linalg.norm( v2 )
-	except TypeError:
-		result = None
-	return result
-
-def my_dot1( v1 ):
-	v2 = ( -1, 1, -1 )
-	try:
-		#result = ( v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2] )/( math.sqrt( v1[0]**2 + v1[1]**2 + v1[2]**2 )*math.sqrt( v2[0]**2 + v2[1]**2 + v2[2]**2 ))
-		result = numpy.dot( v1, v2 )/numpy.linalg.norm( v1 )/numpy.linalg.norm( v2 )
-	except TypeError:
-		result = None
-	return result
-
-def my_dot2( v1 ):
-	v2 = ( -1, -1, 1 )
-	try:
-		#result = ( v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2] )/( math.sqrt( v1[0]**2 + v1[1]**2 + v1[2]**2 )*math.sqrt( v2[0]**2 + v2[1]**2 + v2[2]**2 ))
-		result = numpy.dot( v1, v2 )/numpy.linalg.norm( v1 )/numpy.linalg.norm( v2 )
-	except TypeError:
-		result = None
-	return result
-
-def my_arccos( v ):
-	if v is not None:
-		return numpy.arccos( v )/numpy.pi
-	else:
-		return None
-	
-
 def main( fn, seq_name ):
 	TM = TransitionMatrix()
 	TM.read( "transition_matrices/euplotid_transition_matrix.pic" )
@@ -66,50 +32,11 @@ def main( fn, seq_name ):
 			s.estimate_likelihood()
 			s.estimate_frameshift_likelihood()
 			s.get_most_likely_frameshift()
-			#print s.differential_graded_likelihood
 			s.get_indexes()
-			"""
-			for fs in s.frameshift_sequences:
-				print fs
-				print s.frameshift_sequences[fs].fragments
-				print s.frameshift_sequences[fs].signals
-				print s.frameshift_sequences[fs].radians
-				print s.frameshift_sequences[fs].indexes
-				dgl_list = map( TM.differential_graded_likelihood, s.frameshift_sequences[fs].fragments ) # frame 0
-				dgl_list1 = map( lambda x: TM.differential_graded_likelihood( x[1:] ), s.frameshift_sequences[fs].fragments ) # frame 1
-				dgl_list2 = map( lambda x: TM.differential_graded_likelihood( x[2:] ), s.frameshift_sequences[fs].fragments ) # frame 2
-				vector_list = zip( map( TM.likelihood_slope, dgl_list ), map( TM.likelihood_slope, dgl_list1 ), map( TM.likelihood_slope, dgl_list2 ))
-				print "Vector list:",vector_list
-				print "Frame 0:"
-				print map( my_dot0, vector_list ) # frame 0
-				print map( my_arccos, map( my_dot0, vector_list ))
-				print
-				print "Frame 1:"
-				print map( my_dot1, vector_list ) # frame 1
-				print map( my_arccos, map( my_dot1, vector_list ))
-				print
-				print "Frame 2:"
-				print map( my_dot2, vector_list ) # frame 2
-				print map( my_arccos, map( my_dot2, vector_list ))
-				print
-				print
-				"""
-			"""
-			print "Most likely frameshift:"
-			ML = s.most_likely_frameshift
-			print ML.path
-			print ML.indexes
-			print ML.radian_sums
-			print ML.signals
-			print
-			ML.find_frameshift_sites()
-			for fss in ML.frameshift_sites:
-				FS = ML.frameshift_sites[fss]
-				print "\t".join( map( str, [ FS.signal, FS.initial_frame, \
-					FS.final_frame, FS.position, FS.designation, FS.probability, FS.radians_vector ]))
-			"""
 			s.repr_frameshift_sites( include_nulls=False )
-			s.plot_differential_graded_likelihood( show_name=True, show_starts=False, show_ML=True )
+			#print s.most_likely_frameshift.path
+			#print s.most_likely_frameshift.partial_gradients
+			s.plot_differential_graded_likelihood( show_name=False, show_starts=False, show_ML=False )
 			found = True
 			break
 	

@@ -572,35 +572,55 @@ class Sequence( object ):
 	
 	def estimate_likelihood( self, loglik=True ):
 		if self.transition_matrix is None:
-			raise ValueError( "Missing transition matrix. First run 's.set_transition_matrix( TM )'." )
+			raise ValueError( "Missing transition matrix. \
+				First run 's.set_transition_matrix( TM )'." )
 		else:
 			# frame 0
-			self.likelihood = self.transition_matrix.likelihood( self.sequence, loglik=loglik )
-			self.graded_likelihood = self.transition_matrix.graded_likelihood( self.sequence, loglik=loglik )
-			self.differential_graded_likelihood = self.transition_matrix.differential_graded_likelihood( self.sequence, loglik=loglik )
+			self.likelihood = self.transition_matrix.likelihood( self.sequence, \
+				loglik=loglik )
+			self.graded_likelihood = self.transition_matrix.graded_likelihood( \
+				self.sequence, loglik=loglik, initial=True )
+			self.differential_graded_likelihood = \
+				self.transition_matrix.differential_graded_likelihood( self.sequence, \
+					loglik=loglik, initial=True )
 			# frame 1
-			self.likelihood_ = self.transition_matrix.likelihood( self.sequence_, loglik=loglik )
-			self.graded_likelihood_ = self.transition_matrix.graded_likelihood( self.sequence_, loglik=loglik )
-			self.differential_graded_likelihood_ = self.transition_matrix.differential_graded_likelihood( self.sequence_, loglik=loglik )
+			self.likelihood_ = self.transition_matrix.likelihood( self.sequence_, \
+				loglik=loglik, initial=True )
+			self.graded_likelihood_ = self.transition_matrix.graded_likelihood( \
+				self.sequence_, loglik=loglik, initial=True )
+			self.differential_graded_likelihood_ = \
+				self.transition_matrix.differential_graded_likelihood( self.sequence_, \
+					loglik=loglik, initial=True )
 			# frame 2
-			self.likelihood__ = self.transition_matrix.likelihood( self.sequence__, loglik=loglik )
-			self.graded_likelihood__ = self.transition_matrix.graded_likelihood( self.sequence__, loglik=loglik )
-			self.differential_graded_likelihood__ = self.transition_matrix.differential_graded_likelihood( self.sequence__, loglik=loglik )
+			self.likelihood__ = self.transition_matrix.likelihood( self.sequence__, \
+				loglik=loglik, initial=True )
+			self.graded_likelihood__ = self.transition_matrix.graded_likelihood( \
+				self.sequence__, loglik=loglik, initial=True )
+			self.differential_graded_likelihood__ = \
+				self.transition_matrix.differential_graded_likelihood( self.sequence__,\
+					loglik=loglik, initial=True )
 			
 			# only return results for frame 0
-			return self.likelihood, self.graded_likelihood, self.differential_graded_likelihood
+			return self.likelihood, self.graded_likelihood, \
+				self.differential_graded_likelihood
 			
 	#*****************************************************************************
 	
 	def estimate_frameshift_likelihood( self, loglik=True ):
 		if self.transition_matrix is None:
-			raise ValueError( "Missing transition matrix. First run 's.set_transition_matrix( TM )'." )
+			raise ValueError( "Missing transition matrix. \
+				First run 's.set_transition_matrix( TM )'." )
 		else:
 			for fs in self.frameshift_sequences:
 				F = self.frameshift_sequences[fs]
-				F.likelihood = self.transition_matrix.likelihood( F.frameshifted_sequence, loglik=loglik )
-				F.graded_likelihood = self.transition_matrix.graded_likelihood( F.frameshifted_sequence, loglik=loglik )
-				F.differential_graded_likelihood = self.transition_matrix.differential_graded_likelihood( F.frameshifted_sequence, loglik=loglik )
+				F.likelihood = self.transition_matrix.likelihood( \
+					F.frameshifted_sequence, loglik=loglik, initial=True )
+				F.graded_likelihood = self.transition_matrix.graded_likelihood( \
+					F.frameshifted_sequence, loglik=loglik, initial=True )
+				F.differential_graded_likelihood = \
+					self.transition_matrix.differential_graded_likelihood( \
+						F.frameshifted_sequence, loglik=loglik, initial=True )
+				#F.estimate_partial_gradients()
 	
 	#*****************************************************************************
 	
@@ -768,7 +788,7 @@ class Sequence( object ):
 			F.indexes = index_of_mins( radians )
 		
 	#*****************************************************************************
-	def plot_differential_graded_likelihood( self, outfile=None, show_starts=False, show_signals=True, show_path_str=True, show_name=True, show_ML=False ):
+	def plot_differential_graded_likelihood( self, outfile=None, show_first_start=True, show_starts=False, show_signals=True, show_path_str=True, show_name=True, show_ML=False ):
 		"""
 		Method to plot a sequence and its likelihood tributaries
 		"""
@@ -777,15 +797,20 @@ class Sequence( object ):
 		left, width = 0.1, 0.8
 		
 		# left, bottom, width, height
-		rect1 = [ left, 0.3, width, 0.6 ]
-		rect2 = [ left, 0.1, width, 0.25 ]
+		rect1 = [ left, 0.5, width, 0.45 ]
+		rect2 = [ left, 0.36, width, 0.14 ]
+		rect3 = [ left, 0.22, width, 0.14 ]
+		rect4 = [ left, 0.08, width, 0.14 ]
+		
 		
 		ax1 = fig.add_axes( rect1 )
 		ax2 = fig.add_axes( rect2, sharex=ax1 )
+		ax3 = fig.add_axes( rect3, sharex=ax1 )
+		ax4 = fig.add_axes( rect4, sharex=ax1 )
 		
 		# frame 0
-		x = numpy.linspace( 1, len( self.graded_likelihood ), \
-			len( self.graded_likelihood )  )
+		x = numpy.linspace( 1, len( self.differential_graded_likelihood ), \
+			len( self.differential_graded_likelihood ))
 		ax1.plot( x*3, self.differential_graded_likelihood, ":", color='r', \
 			linewidth=1.5 )
 		ax1.annotate( "No shift (fr 0)", xy=( self.length + 4, \
@@ -793,8 +818,8 @@ class Sequence( object ):
 				horizontalalignment='left' )
 		
 		# frame 1
-		x1 = numpy.linspace( 1, len( self.graded_likelihood_ ), \
-			len( self.graded_likelihood_ ))
+		x1 = numpy.linspace( 1, len( self.differential_graded_likelihood_ ), \
+			len( self.differential_graded_likelihood_ ))
 		ax1.plot( x1*3 + 1, self.differential_graded_likelihood_, ":", color='g', \
 			linewidth=1.5 )
 		ax1.annotate( "No shift (fr 1)", xy=( self.length + 4, \
@@ -802,8 +827,8 @@ class Sequence( object ):
 				horizontalalignment='left' )
 		
 		# frame 2
-		x2 = numpy.linspace( 1, len( self.graded_likelihood__ ), \
-			len( self.graded_likelihood__ ))
+		x2 = numpy.linspace( 1, len( self.differential_graded_likelihood__ ), \
+			len( self.differential_graded_likelihood__ ))
 		ax1.plot( x2*3 + 2, self.differential_graded_likelihood__, ":", color='b', \
 			linewidth=1.5 )
 		ax1.annotate( "No shift (fr 2)", xy=( self.length + 4, \
@@ -883,11 +908,12 @@ class Sequence( object ):
 		ax1.axvline( self.length - 1, color='r', linestyle="dashed" )
 	
 		# mark the position of the first start (ATG)
-		#if self.start_pos >= 0:
-			#plt.axvline( self.start_pos, color='r', linestyle='dashed' )
-			#plt.annotate( "ATG", xy=( self.start_pos, ymax ), rotation=90, \
-				#size='x-small', color='r', horizontalalignment='right', \
-					#verticalalignment='right' )
+		if show_first_start:
+			#if self.start_pos >= 0:
+			ax1.axvline( self.start_pos, color='r', linestyle='dashed' )
+			ax1.annotate( "ATG", xy=( self.start_pos, ymax ), rotation=90, \
+				size='x-small', color='r', horizontalalignment='right', \
+					verticalalignment='right' )
 		
 		# mark the positions of all starts
 		if show_starts:
@@ -926,24 +952,61 @@ class Sequence( object ):
 		# add a grid
 		ax1.grid()
 		
+		"""
 		# the filtered gradient plot
 		xml = numpy.linspace( 1, len( self.most_likely_frameshift.differential_graded_likelihood ), \
 			len( self.most_likely_frameshift.differential_graded_likelihood ))
 		#print >> sys.stderr, len( xml ), self.most_likely_frameshift.length, len( self.most_likely_frameshift.differential_graded_likelihood )
 		ax2.plot( xml*3, savgol( self.most_likely_frameshift.differential_graded_likelihood, \
-			window_size=7, deriv=1 ))
+			window_size=5, deriv=1 ))
+		"""
 		
+		# frame 0
+		dgl_prime = savgol( self.differential_graded_likelihood, \
+			window_size=7, deriv=1 )
+		x = numpy.linspace( 1, len( dgl_prime ), len( dgl_prime ))
+		ax2.plot( x*3, dgl_prime, color='r', linewidth=1.5 )
 		if show_signals:
 			for i in xrange( len( self.most_likely_frameshift.path )):
 				# vertical dashed frameshift signal markers
 				ax2.axvline( self.most_likely_frameshift.path[i][1], color='r', \
 					linestyle="dashed" )
-		
-		# add a grid
 		ax2.grid()
 		
+		# frame 1
+		dgl_prime_ = savgol( self.differential_graded_likelihood_, \
+			window_size=7, deriv=1 )
+		x1 = numpy.linspace( 1, len( dgl_prime_ ), len( dgl_prime_ ))
+		ax3.plot( x1*3 + 1, dgl_prime_, color='g', linewidth=1.5 )
+		if show_signals:
+			for i in xrange( len( self.most_likely_frameshift.path )):
+				# vertical dashed frameshift signal markers
+				ax3.axvline( self.most_likely_frameshift.path[i][1], color='r', \
+					linestyle="dashed" )
+		ax3.grid()
+		
+		# frame 2
+		dgl_prime__ = savgol( self.differential_graded_likelihood__, \
+			window_size=7, deriv=1 )
+		x2 = numpy.linspace( 1, len( dgl_prime__ ), len( dgl_prime__ ))
+		ax4.plot( x2*3 + 2, dgl_prime__, color='b', linewidth=1.5 )
+		if show_signals:
+			for i in xrange( len( self.most_likely_frameshift.path )):
+				# vertical dashed frameshift signal markers
+				ax4.axvline( self.most_likely_frameshift.path[i][1], color='r', \
+					linestyle="dashed" )
+		ax4.grid()
+		
+		"""
+		if show_signals:
+			for i in xrange( len( self.most_likely_frameshift.path )):
+				# vertical dashed frameshift signal markers
+				ax2.axvline( self.most_likely_frameshift.path[i][1], color='r', \
+					linestyle="dashed" )
+		"""
+		
 		# space between plots
-		fig.subplots_adjust( hspace=0.1 )
+		#fig.subplots_adjust( hspace=0.1 )
 		
 		if outfile is not None:
 			outfile.savefig()

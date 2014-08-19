@@ -13,9 +13,9 @@ def main( fn ):
 	# initialise the TransitionMatrix
 	TM = TransitionMatrix()
 	TM.build( fn )
-	TM.write( "transition_matrices/homo_transition_matrix.pic" )
+	#TM.write( "transition_matrices/homo_transition_matrix.pic" )
 	#TM.write( "transition_matrices/tetrahymena_transition_matrix.pic" )
-	#TM.read( "euplotid_transition_matrix.pic" )
+	TM.write( "transition_matrices/euplotid_transition_matrix.pic" )
 
 if __name__ == "__main__":
 	try:
