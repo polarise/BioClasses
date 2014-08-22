@@ -6,6 +6,7 @@ import random
 import math
 import copy
 import termcolor
+import scipy.signal
 from Node import *
 from Branch import *
 from Tree import *
@@ -849,8 +850,7 @@ class Sequence( object ):
 		ax1.set_xlim(( 0, self.length + 40 ))
 		
 		# x- and y-labels
-		ax1.set_xlabel( "Sequence position, $i$ (bp)" )
-		ax1.set_ylabel( r"$\Delta l_{\mathrm{cum}}(i|Q)$" )
+		ax1.set_ylabel( r"$\lambda(\phi(t))$" )
 		
 		# the frameshift sequences
 		up = True
@@ -962,8 +962,8 @@ class Sequence( object ):
 		"""
 		
 		# frame 0
-		dgl_prime = savgol( self.differential_graded_likelihood, \
-			window_size=7, deriv=1 )
+		dgl_prime = scipy.signal.savgol_filter( self.differential_graded_likelihood, \
+			window_length=7, polyorder=3, deriv=1 )
 		x = numpy.linspace( 1, len( dgl_prime ), len( dgl_prime ))
 		ax2.plot( x*3, dgl_prime, color='r', linewidth=1.5 )
 		if show_signals:
@@ -971,11 +971,12 @@ class Sequence( object ):
 				# vertical dashed frameshift signal markers
 				ax2.axvline( self.most_likely_frameshift.path[i][1], color='r', \
 					linestyle="dashed" )
+		ax2.set_ylabel( r"$m_0$" )
 		ax2.grid()
 		
 		# frame 1
-		dgl_prime_ = savgol( self.differential_graded_likelihood_, \
-			window_size=7, deriv=1 )
+		dgl_prime_ = scipy.signal.savgol_filter( self.differential_graded_likelihood_, \
+			window_length=7, polyorder=3, deriv=1 )
 		x1 = numpy.linspace( 1, len( dgl_prime_ ), len( dgl_prime_ ))
 		ax3.plot( x1*3 + 1, dgl_prime_, color='g', linewidth=1.5 )
 		if show_signals:
@@ -983,11 +984,12 @@ class Sequence( object ):
 				# vertical dashed frameshift signal markers
 				ax3.axvline( self.most_likely_frameshift.path[i][1], color='r', \
 					linestyle="dashed" )
+		ax3.set_ylabel( r"$m_1$" )
 		ax3.grid()
 		
 		# frame 2
-		dgl_prime__ = savgol( self.differential_graded_likelihood__, \
-			window_size=7, deriv=1 )
+		dgl_prime__ = scipy.signal.savgol_filter( self.differential_graded_likelihood__, \
+			window_length=7, polyorder=3, deriv=1 )
 		x2 = numpy.linspace( 1, len( dgl_prime__ ), len( dgl_prime__ ))
 		ax4.plot( x2*3 + 2, dgl_prime__, color='b', linewidth=1.5 )
 		if show_signals:
@@ -995,6 +997,8 @@ class Sequence( object ):
 				# vertical dashed frameshift signal markers
 				ax4.axvline( self.most_likely_frameshift.path[i][1], color='r', \
 					linestyle="dashed" )
+		ax4.set_ylabel( r"$m_2$" )
+		ax4.set_xlabel( "Sequence position, $t$ (bp)" )
 		ax4.grid()
 		
 		"""
