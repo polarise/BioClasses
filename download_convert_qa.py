@@ -108,9 +108,48 @@ def qa( T, dcq_configs ):
 				R.run + "*fq.gz" )
 			trimmed_files.sort()
 			
-			cmd = "%s %s --outdir %s %s" % ( dcq_configs['FASTQC'], dcq_configs['FASTQC_PARAMS'], dcq_configs['FASTQC_REPORT_PATH'], " ".join( trimmed_files ))
+			cmd = "%s %s --outdir %s %s" % ( dcq_configs['FASTQC'], \
+			dcq_configs['FASTQC_PARAMS'], dcq_configs['FASTQC_REPORT_PATH'], \
+			" ".join( trimmed_files ))
 			
 			logging.debug( cmd )
 			
 			run_command( cmd )
+	
+	# delete zip files
+	if dcq_configs['DELETE_FASTQC_ZIP'] == "yes":
+		logging.info( "Deleting FastQC zip files..." )
+	
+		cmd = "rm -vf %s/*.zip" % dcq_configs['FASTQC_REPORT_PATH']
+	
+		logging.debug( cmd )
+	
+		run_command( cmd )
+	
+	# transfer FastQC reports
+	if dcq_configs['TRANSFTER_FASTQC_REPORTS'] == "yes":		
+		logging.info( "Creating remote FastQC report directory %s..." % \
+		T.sra_study )
+		
+		cmd = "%s %s \"mkdir -p %s/%s\"" % ( dcq_configs['REMOTE_CONN'],\
+		dcq_configs['FASTQC_FILE_TRANSFER_HOST'], \
+		dcq_configs['FASTQC_FILE_TRANSFER_PATH'], T.sra_study )
+
+		logging.debug( cmd )
+		
+		run_command( cmd )
+
+		logging.info( "Transferring FastQC reports to %s:%s..." % ( \
+		dcq_configs['FASTQC_FILE_TRANSFER_HOST'], \
+		dcq_configs['FASTQC_FILE_TRANSFER_PATH'] ))
+		
+		cmd = "%s %s %s %s:%s/%s" % ( dcq_configs['FILE_TRANSFER'],\
+		dcq_configs['FILE_TRANSFER_PARAMS'], dcq_configs['FASTQC_REPORT_PATH'],\
+		dcq_configs['FASTQC_FILE_TRANSFER_HOST'],\
+		dcq_configs['FASTQC_FILE_TRANSFER_PATH'],	T.sra_study )
+		
+		logging.debug( cmd )
+		
+		run_command( cmd )
+		
 			

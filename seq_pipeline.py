@@ -52,7 +52,8 @@ def main( dcq_conf, mq_conf, skip_download=False, skip_convert=False, \
 		logging.debug( "No errors found." )
 
 	# read the SraRunTable.txt
-	T = SraRunTable( dcq_configs['SRARUNTABLE'] )
+	T = SraRunTable( dcq_configs['SRARUNTABLE'], \
+	ignore=dcq_configs['IGNORE_RUNS'] )
 	T.read()
 	
 	# download, convert, QA
@@ -130,14 +131,12 @@ if __name__ == "__main__":
 	skip_map = args.skip_map
 	skip_quantify = args.skip_quantify
 	
-	
-	
 	main( dcq_conf, mq_conf, skip_download, skip_convert, skip_trim, skip_qa, \
 		skip_map, skip_quantify )
 	
 	# end this log
-	logging.info( "##############################################################\
-		##################" )
-	logging.info( "ENDING BREEZE RUN" )
-	logging.info( "##############################################################\
-		##################" )
+	logging.info( """############################################################\
+	####################""" )
+	logging.info( "                               ENDING BREEZE RUN" )
+	logging.info( """############################################################\
+	####################""" )
