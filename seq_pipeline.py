@@ -8,87 +8,70 @@ from download_convert_qa import *
 from mapping_quantification import *
 from SRAObjects import *
 
-def main( dcq_conf, mq_conf, skip_download=False, skip_convert=False, \
+def main( conf, skip_download=False, skip_convert=False, \
 	skip_trim=False, skip_qa=False, skip_map=False, skip_quantify=False ):
 	
 	# read in the configuration files
-	dcq_configs = dict()
-	with open( dcq_conf ) as f:
+	configs = dict()
+	with open( conf ) as f:
 		for row in f:
 			if row[0] == "#" or row[0] == "\n" or row[0] == " ": # comments or blanks
 				continue
 			else:
 				key,value = row.strip( "\n" ).split( "=" )
-				dcq_configs[key] = value
-	
-	mq_configs = dict()
-	with open( mq_conf ) as f:
-		for row in f:
-			if row[0] == "#" or row[0] == "\n" or row[0] == " ": # comments or blanks
-				continue
-			else:
-				key,value = row.strip( "\n" ).split( "=" )
-				mq_configs[key] = value
+				configs[key] = value
 	
 	# show the configs
-	logging.debug( "DCQ CONFIGS:" )
-	logging.debug( dcq_configs )
+	logging.debug( "CONFIGS:" )
+	logging.debug( configs )
 
 	# look for errors
-	dcq_errors = precheck( dcq_configs )
+	dcq_errors = precheck( configs )
 	if dcq_errors > 0:
 		logging.critical( "Found %s errors" % dcq_errors )
 		sys.exit( 1 )
 	else:
 		logging.debug( "No errors found." )
-	
-	logging.debug( "MQ CONFIGS:" )
-	logging.debug( mq_configs )
-	mq_errors = precheck( mq_configs )
-	if mq_errors > 0:
-		logging.critical( "Found %s errors" % mq_errors )
-		sys.exit( 1 )
-	else:
-		logging.debug( "No errors found." )
+
 
 	# read the SraRunTable.txt
-	T = SraRunTable( dcq_configs['SRARUNTABLE'], \
-	ignore=dcq_configs['IGNORE_RUNS'] )
+	T = SraRunTable( configs['SRARUNTABLE'], \
+	ignore=configs['IGNORE_RUNS'] )
 	T.read()
 	
 	# download, convert, QA
 	if skip_download:
 		logging.info( "Skipping download..." )
 	else:
-		download( T, dcq_configs )
+		download( T, configs )
 	
 	if skip_convert:
 		logging.info( "Skipping convert..." )
 	else:
-		convert( T, dcq_configs )
+		convert( T, configs )
 	
 	if skip_trim:
 		logging.info( "Skipping trimming..." )
 	else:
-		trimming( T, dcq_configs )
+		trimming( T, configs )
 	
 	if skip_qa:
 		logging.info( "Skipping QA..." )
 	else:
-		qa( T, dcq_configs )
+		qa( T, configs )
 	
 	# mapping, quantification
 	if skip_map:
 		logging.info( "Skipping mapping..." )
 	else:
-		mapping( T, dcq_configs )
+		mapping( T, configs )
 	
 	sys.exit( 0 )
 	
 	if skip_quantify:
 		logging.info( "Skipping quantification..." )
 	else:
-		quantification( T, mq_configs )	
+		quantification( T, configs )	
 
 if __name__ == "__main__":
 	"""
@@ -103,10 +86,8 @@ if __name__ == "__main__":
 	
 	parser = argparse.ArgumentParser( description=\
 		"Script that makes high-throughtput data analysis a breeze." )
-	parser.add_argument( "-D", "--dcq-conf", \
-		help="configuration file for download-convert-QA" )
-	parser.add_argument( "-M", "--mq-conf", \
-		help="configuration file for mapping-quantification" )
+	parser.add_argument( "-C", "--conf", \
+		help="configuration file [default: breeze.conf]" )
 	parser.add_argument( "-d", "--skip-download", action="store_true", \
 		help="do not download files" )
 	parser.add_argument( "-c", "--skip-convert", action="store_true", \
@@ -122,8 +103,7 @@ if __name__ == "__main__":
 	
 	args = parser.parse_args()
 	
-	dcq_conf = args.dcq_conf
-	mq_conf = args.mq_conf
+	conf = args.conf
 	skip_download = args.skip_download
 	skip_convert = args.skip_convert
 	skip_trim = args.skip_trim
@@ -131,7 +111,10 @@ if __name__ == "__main__":
 	skip_map = args.skip_map
 	skip_quantify = args.skip_quantify
 	
-	main( dcq_conf, mq_conf, skip_download, skip_convert, skip_trim, skip_qa, \
+	if conf is None:
+		conf = "breeze.conf"
+	
+	main( conf, skip_download, skip_convert, skip_trim, skip_qa, \
 		skip_map, skip_quantify )
 	
 	# end this log
