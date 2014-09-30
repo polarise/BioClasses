@@ -6,11 +6,13 @@ class Transcript( object ):
 	def __init__( self, record ):
 		self.transcript_id = record.group_dict['transcript_id']
 		self.source = record.source # protein_coding|...|miRNA| etc
-		self.start = record.start
-		self.end = record.end
+		self.seqname = record.seqname
+		self.start = record.start # 1-based
+		self.end = record.end			# 1-based
+		self.strand = record.strand
 		self.exons = dict()
-		self.CDS = dict()
-		self.UTR = dict()
+		self.CDS = dict() # exons by the way
+		self.UTR = dict() # exons by the way
 		self.start_codon = None
 		self.stop_codon = None
 	
@@ -19,6 +21,36 @@ class Transcript( object ):
 			return True
 		else:
 			return False
+		
+	def region_str( self, zero_based=False ):
+		if zero_based:
+			return "%s:%s-%s" % tuple( map( str, [ self.seqname, int( self.start ) - 1, int( self.end ) - 1 ]))
+		elif not zero_based:
+			return "%s:%s-%s" % ( self.seqname, self.start, self.end )
+	
+	def cds_region_str( self, zero_based=False ):
+		if self.strand == "+":
+			if zero_based:
+				return "%s:%s-%s" % tuple( map( str, [ self.seqname, int( self.start_codon ) - 1, int( self.stop_codon ) + 1 ]))
+			elif not zero_based:
+				return "%s:%s-%s" % ( self.seqname, self.start_codon , str( int( self.stop_codon ) + 2 ))
+		elif self.strand == "-":
+			if zero_based:
+				return "%s:%s-%s" % tuple( map( str, [ self.seqname, int( self.stop_codon ) - 3, int( self.start_codon ) - 1 ]))
+			elif not zero_based:
+				return "%s:%s-%s" % ( self.seqname, str( int( self.stop_codon ) - 2 ), self.start_codon )
+	
+	def utr_region_str( self, zero_based=False ):
+		if self.strand == "+":
+			if zero_based:
+				return "%s:%s-%s" % tuple( map( str, [ self.seqname, int( self.start ) - 1, int( self.start_codon ) - 2 ]))
+			elif not zero_based:
+				return "%s:%s-%s" % ( self.seqname, self.start, str( int( self.start_codon ) - 1 ))
+		elif self.strand == "-":
+			if zero_based:
+				return "%s:%s-%s" % tuple( map( str, [ self.seqname, int( self.start_codon ), int( self.end ) - 1] ))
+			elif not zero_based:
+				return "%s:%s-%s" % ( self.seqname, str( int( self.start_codon ) + 1 ), self.end )
 	
 	def process_exon( self, record ):
 		self.exons[record.group_dict['exon_id']]  = Exon( record )
@@ -36,6 +68,7 @@ class Transcript( object ):
 		self.stop_codon = record.start
 	
 	def __repr__( self ):
+#		return "%s [%s]" % ( self.transcript_id, self.region_str())
 		return "%s [%s(%s):(%s)%s]" % ( self.transcript_id, self.start, self.start_codon, self.stop_codon, self.end )
 	
 	def __eq__( self, T ):

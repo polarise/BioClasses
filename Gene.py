@@ -14,6 +14,12 @@ class Gene( object ):
 		self.strand = record.strand
 		self.transcripts = dict()
 	
+	def region_str( self, zero_based=False ):
+		if zero_based:
+			return "%s:%s-%s" % tuple( map( str, [ self.seqname, int( self.start ) - 1, int( self.end ) - 1 ]))
+		elif not zero_based:
+			return "%s:%s-%s" % ( self.seqname, self.start, self.end )		
+	
 	def process_record( self, record ):
 		if record.feature == "transcript":
 			self.transcripts[record.group_dict['transcript_id']] = Transcript( record )
@@ -29,6 +35,7 @@ class Gene( object ):
 					self.transcripts[record.group_dict['transcript_id']].process_stop_codon( record )
 	
 	def __repr__( self ):
+#		return "%s [%s]" % ( self.gene_id, self.region_str())
 		return self.gene_id + " [" + ":".join([ self.seqname, self.start, self.end, self.strand ]) + "]"
 	
 	def get_protein_coding( self ):
