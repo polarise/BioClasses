@@ -24,6 +24,9 @@ class GTFRecord( object ):
 		
 		return group_dict
 	
+	def region_str( self ):
+		return "%s:%s-%s" % ( self.seqname, self.start, self.end )
+	
 	def __repr__( self ):
 		return "\t".join([ self.group_dict['gene_id'], self.group_dict['transcript_id'], self.start, self.end ])
 		

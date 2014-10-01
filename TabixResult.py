@@ -3,9 +3,13 @@ from __future__ import division
 import sys
 import pysam
 from scipy import stats
+from GTFRecord import *
 
 class TabixResult( object ):
-	def __init__( self, region, tabixfile, store_tabix_result=False ):
+	def __init__( self, region, tabixfile, filetype="bed", store_tabix_result=False ):
+		"""
+		filetype can be 'bed', 'gtf' or 'gff',
+		"""
 		self.region = region
 		self.tabixfile = tabixfile
 		try:
@@ -16,8 +20,22 @@ class TabixResult( object ):
 		if store_tabix_result:
 			self.tabix_result = tabix_result			
 		self.chrom, self.start, self.end = self.process_region_str( region )
-		self.count, self.density, self.serial_data = self.compute_stats( tabix_result )
+		if filetype == "bed":
+			self.count, self.density, self.serial_data = self.compute_stats( tabix_result )
+		elif filetype == "gtf" or filetype == "gff":
+			self.records = self.extract_records( tabix_result )
+			self.record_count = len( self.records )
+		else:
+			raise NotImplementedError( "handler for other filetypes not implemented" )
 	
+	def extract_records( self, tabix_result ):
+		records = list()
+		for row in tabix_result:
+			l = row.strip( "\n" ).split( "\t" )
+			records.append( GTFRecord( *l ))
+		
+		return records
+				
 	def process_region_str( self, region ):
 		chrom, start_end = region.split( ":" )
 		start, end = map( int, start_end.split( "-" ))
@@ -67,7 +85,7 @@ class TabixResult( object ):
 			
 			if x_bar > 5*density*n:
 				self.peak_data.append( 1 )
-				pvalue = stats.poisson.pmf( c[i+10], mu=density*n )
+				pvalue = stats.poisson.pmf( c[i+(n//2)], mu=density*n )
 				self.peak_pvalues.append( pvalue )
 			else:
 				self.peak_data.append( 0 )
