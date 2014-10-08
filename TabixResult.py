@@ -6,7 +6,7 @@ from scipy import stats
 from GTFRecord import *
 
 class TabixResult( object ):
-	def __init__( self, region, tabixfile, filetype="bed", store_tabix_result=False ):
+	def __init__( self, region, tabixfile, filetype="bed", store_tabix_result=False, verbose=False ):
 		"""
 		filetype can be 'bed', 'gtf' or 'gff',
 		"""
@@ -15,7 +15,8 @@ class TabixResult( object ):
 		try:
 			tabix_result = tabixfile.fetch( region )
 		except ValueError:
-			print >> sys.stderr, "Warning: unable to create iterator for %s" % region
+			if verbose:
+				print >> sys.stderr, "Warning: unable to create iterator for %s" % region
 			tabix_result = list()
 		if store_tabix_result:
 			self.tabix_result = tabix_result			
@@ -68,22 +69,17 @@ class TabixResult( object ):
 			density = "Inf"
 		return count, density, serial_data
 	
-	def compute_peaks( self, density, n=21, pvalue_thresh=0.01 ):
-		"""
-		n must be odd
-		"""
-		# put n/2 zeros at the beginning...
+	def compute_peaks( self, density, n=21, pvalue_thresh=0.01, excess=5 ):
+		# put n//2 zeros at the beginning...
 		self.peak_data = [0]*(n//2)
 		self.peak_pvalues = [1]*(n//2)
 		
 		c = self.serial_data
 		for i in xrange( len( self.serial_data ) - n + 1 ):
-			x_sum = 0
-			for j in xrange( i, i + n ):
-				x_sum += c[j]
+			x_sum = sum([ c[j] for j in xrange( i, i + n )])
 			x_bar = x_sum/n
 			
-			if x_bar > 5*density*n:
+			if x_bar > excess*density:
 				self.peak_data.append( 1 )
 				pvalue = stats.poisson.pmf( c[i+(n//2)], mu=density*n )
 				self.peak_pvalues.append( pvalue )
@@ -101,11 +97,11 @@ class TabixResult( object ):
 		i = 0	
 		peak_pos = -1
 		for p in self.peak_pvalues:
-			if p == 0:
+			if p <= pvalue_thresh:
 				if peak_pos < 0:
 					peak_pos = i
 				peak.append( p )	
-			elif p == 1:
+			else:
 				if len( peak ) >= n:
 					self.found_peaks[self.start + peak_pos] = len( peak )
 				peak = list()

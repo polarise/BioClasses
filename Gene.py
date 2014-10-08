@@ -14,6 +14,12 @@ class Gene( object ):
 		self.strand = record.strand
 		self.transcripts = dict()
 	
+	def is_protein_coding( self ):
+		if self.source == "protein_coding":
+			return True
+		else:
+			return False
+	
 	def region_str( self, zero_based=False ):
 		if zero_based:
 			return "%s:%s-%s" % tuple( map( str, [ self.seqname, int( self.start ) - 1, int( self.end ) - 1 ]))
@@ -46,6 +52,18 @@ class Gene( object ):
 		
 		return PCT
 	
+	def get_complete_protein_coding( self ):
+		PCT = self.get_protein_coding()
+		complete_PCT = list()
+		for P in PCT:
+			if P.is_complete():
+				complete_PCT.append( P )
+		
+		if len( complete_PCT ) > 0:
+			return complete_PCT
+		else:
+			return None
+	
 	def get_equal_cds( self ):
 		PCT = self.get_protein_coding() # protein coding transcripts
 		
@@ -77,8 +95,60 @@ class Gene( object ):
 			for P in PCT:
 				if P.start_codon == best_start and P.stop_codon == best_stop:
 					equal_cds_transcripts.add( P )
+		if len( equal_cds_transcripts ) > 1:
+			return list( equal_cds_transcripts )
+		else:
+			return None
+	
+	def get_overall_UTR_region( self, transcripts="all", as_region_str=True ):
+		"""
+		transcripts = all|equal_cds
+		"""
+		def process_region_str( region_str ):
+			seqname, start_end = region_str.split( ":" )
+			start, end = start_end.split( "-" )
+			return seqname, start, end
+		
+		if transcripts == "all":
+			candidate_transcripts = self.get_complete_protein_coding()
+		elif transcripts == "equal_cds":
+			candidate_transcripts = self.get_equal_cds()
+		
+		if candidate_transcripts is None:
+			return None
+		else:
+			overall_utr_start = list()
+			overall_utr_end = list()
+			utr_starts = list()
+			utr_ends = list()
+			for T in candidate_transcripts:
+				region_str = T.utr_region_str()
+				seqname, start, end = process_region_str( region_str )
+				start_i = int( start )
+				end_i = int( end )
+				utr_starts.append( start_i )
+				utr_ends.append( end_i )
+		
+			try:
+				overall_utr_start = min( utr_starts )
+			except ValueError:
+				overall_utr_start = None
+				print >> sys.stderr, "Warning: empty utr_starts for %s" % self.gene_id
+		
+			try:
+				overall_utr_end = max( utr_ends )
+			except ValueError:
+				overall_utr_end = None
+				print >> sys.stderr, "Warning: empty utr_ends for %s" % self.gene_id
+		
+			# construct the final region string
+			if as_region_str:
+				return "%s:%s-%s" % ( self.seqname, overall_utr_start, overall_utr_end )
+			elif not as_region_str:
+				return self.seqname, str( overall_utr_start ), str( overall_utr_end )
+		
 			
-		return list( equal_cds_transcripts )
+		
 
 
 
