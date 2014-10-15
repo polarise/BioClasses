@@ -71,7 +71,8 @@ class Transcript( object ):
 	#=============================================================================
 	
 	def process_exon( self, record ):
-		self.exons[record.group_dict['exon_id']]  = Exon( record )
+		self.exons[record.group_dict['exon_number']] = Exon( record )
+#		self.exons[record.group_dict['exon_id']]  = Exon( record )
 	
 	#=============================================================================
 	
@@ -98,9 +99,9 @@ class Transcript( object ):
 	def __repr__( self ):
 #		return "%s [%s]" % ( self.transcript_id, self.region_str())
 		if self.strand == "+":
-			return "%s [%s(%s):(%s)%s]" % ( self.transcript_id, self.start, self.start_codon, self.stop_codon, self.end )
+			return "%s\t[%s(%s):(%s)%s]" % ( self.transcript_id, self.start, self.start_codon, self.stop_codon, self.end )
 		elif self.strand == "-":
-			return "%s [%s(%s):(%s)%s]" % ( self.transcript_id, self.end, self.start_codon, self.stop_codon, self.start )
+			return "%s\t[%s(%s):(%s)%s]" % ( self.transcript_id, self.end, self.start_codon, self.stop_codon, self.start )
 	
 	#=============================================================================
 	

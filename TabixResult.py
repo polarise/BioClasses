@@ -49,7 +49,7 @@ class TabixResult( object ):
 		for row in tabix_result:
 			l = row.strip( "\n" ).split( "\t" )
 			pos = int( l[1] )
-			pos_count = int( l[-2] )
+			pos_count = int( float( l[-2] )) # guard against numbers in exp-format
 			count_data[int( l[1] )] = pos_count
 			count_rows += 1
 			
@@ -69,7 +69,7 @@ class TabixResult( object ):
 			density = "Inf"
 		return count, density, serial_data
 	
-	def compute_peaks( self, density, n=21, pvalue_thresh=0.01, excess=5 ):
+	def compute_peaks( self, density, n=21, pvalue_thresh=0.01, excess=5, triplet_fix=False ):
 		# put n//2 zeros at the beginning...
 		self.peak_data = [0]*(n//2)
 		self.peak_pvalues = [1]*(n//2)
@@ -81,7 +81,10 @@ class TabixResult( object ):
 			
 			if x_bar > excess*density:
 				self.peak_data.append( 1 )
-				pvalue = stats.poisson.pmf( c[i+(n//2)], mu=density*n )
+				if triplet_fix:
+					pvalue = stats.poisson.pmf( max( c[i+(n//2)-1], c[i+(n//2)], c[i+(n//2)+1] ), mu=density )
+				else:
+					pvalue = stats.poisson.pmf( c[i+(n//2)], mu=density )
 				self.peak_pvalues.append( pvalue )
 			else:
 				self.peak_data.append( 0 )

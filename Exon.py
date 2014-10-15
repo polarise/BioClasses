@@ -11,6 +11,13 @@ class Exon( object ):
 			self.exon_id = record.group_dict['ccds_id']
 		self.source = record.source
 		self.exon_number = record.group_dict['exon_number']
+		self.seqname = record.seqname
 		self.start = record.start
 		self.end = record.end
+	
+	def region_str( self, zero_based=False ):
+		if zero_based:
+			return "%s:%s-%s" % ( self.seqname, str( int( self.start ) - 1 ), str( int( self.end ) - 1 ))
+		else:
+			return "%s:%s-%s" % ( self.seqname, self.start, self.end )
 		
