@@ -100,7 +100,7 @@ Log-likelihood:        %s"""\
 				radians_vector = self.radians[i]
 				position_score = frameshift_position_score( initial_node[1], self.length )
 				self.frameshift_sites[initial_node] = FrameshiftSite( initial_node, \
-					final_node, signal, position_score, radians_vector )
+					final_node, signal, self.length, position_score, radians_vector )
 				
 	#*****************************************************************************
 	def estimate_GC_content( self ):

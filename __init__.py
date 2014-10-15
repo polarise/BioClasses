@@ -21,3 +21,4 @@ from Gene import *
 from Transcript import *
 from Exon import *
 from TabixResult import *
+from FrameshiftTranscript import *
