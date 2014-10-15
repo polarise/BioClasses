@@ -32,7 +32,6 @@ class FrameshiftTranscript( object ):
 			output_str += "Frameshift #%s: %s at %s (pos-score = %s).\n" % ( i, \
 				FS.signal, FS.position, FS.position_score )
 			i += 1
-		output_str += "\n"
 		
 		return output_str
 			
