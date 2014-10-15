@@ -34,9 +34,9 @@ def main( fn, seq_name ):
 			s.get_most_likely_frameshift()
 			s.get_indexes()
 			s.repr_frameshift_sites( include_nulls=False )
-			#print s.most_likely_frameshift.path
-			#print s.most_likely_frameshift.partial_gradients
-			#s.plot_differential_graded_likelihood( show_name=False, show_starts=False, show_ML=False )
+#			print s.most_likely_frameshift.path
+#			print s.most_likely_frameshift.partial_gradients
+			s.plot_differential_graded_likelihood( show_name=False, show_starts=False, show_ML=False )
 			found = True
 			break
 	
