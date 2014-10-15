@@ -38,14 +38,15 @@ class Run( object ):
 		#self.strain = row_dict['strain']
 
 class SraRunTable( object ):
-	def __init__( self, fn ):	
+	def __init__( self, fn, ignore="" ):	
 		# meta
 		self.filename = fn
-		self.study = None
+		self.sra_study = None
 		self.runs = dict()
 		self.samples = list()
 		self.no_of_runs = 0
 		self.no_of_samples = 0
+		self.ignore_runs = ignore.split( "," )
 		
 	def read( self ):
 		field_names = list()
@@ -61,14 +62,18 @@ class SraRunTable( object ):
 					l = row.strip( "\n" ).split( "\t" )
 					row_dict = dict( zip( field_names, l ))
 					R = Run( row_dict )
-					self.runs[R.run] = R
-					self.no_of_runs += 1
-					if R.sra_sample not in self.samples:
-						self.samples.append( R.sra_sample )
-						self.no_of_samples += 1
+					if R.run in self.ignore_runs:
+						logging.info( "Ignoring run %s..." % R.run )
+					else:
+						logging.info( "Adding run %s..." % R.run )
+						self.runs[R.run] = R
+						self.no_of_runs += 1
+						if R.sra_sample not in self.samples:
+							self.samples.append( R.sra_sample )
+							self.no_of_samples += 1
 					# get the study name
 					if not named_study:
-						self.study = R.sra_study
+						self.sra_study = R.sra_study
 						named_study = True
 	
 	def __repr__( self ):
