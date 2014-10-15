@@ -29,8 +29,8 @@ class FrameshiftTranscript( object ):
 		output_str = "Transcript: %s\n" % self.name
 		i = 1
 		for pos,FS in self.frameshift_sites.iteritems():
-			output_str += "Frameshift #%s: %s at %s (pos-score = %s).\n" % ( i, \
-				FS.signal, FS.position, round( FS.position_score, 4 ))
+			output_str += "Frameshift #%s: %s at %s (pos-score = %.4f).\n" % ( i, \
+				FS.signal, FS.position, FS.position_score )
 			i += 1
 		output_str += "\n"
 		
