@@ -4,7 +4,7 @@ import sys
 
 class FrameshiftSite( object ):
 	def __init__( self, initial_node, final_node, signal, length, position_score, \
-		radians_vector=( None, None, None ) ):
+		radians_vector=( 0.0, 0.0, 0.0 ) ):
 		self.initial_frame = initial_node[0]
 		self.final_frame = final_node[0]
 		self.position = initial_node[1]
