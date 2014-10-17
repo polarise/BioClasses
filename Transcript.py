@@ -56,6 +56,14 @@ class Transcript( object ):
 	
 	#=============================================================================
 	
+	def get_full_length( self ):
+		length = 0
+		for exon_id,E in self.exons.iteritems():
+			length += ( int( E.end ) - int( E.start ) + 1 )
+		return length
+	
+	#=============================================================================
+	
 	def utr_region_str( self, zero_based=False ):
 		if self.strand == "+":
 			if zero_based:
@@ -71,7 +79,7 @@ class Transcript( object ):
 	#=============================================================================
 	
 	def process_exon( self, record ):
-		self.exons[record.group_dict['exon_number']] = Exon( record )
+		self.exons[int( record.group_dict['exon_number'] )] = Exon( record )
 #		self.exons[record.group_dict['exon_id']]  = Exon( record )
 	
 	#=============================================================================

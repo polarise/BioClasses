@@ -22,7 +22,7 @@ class Gene( object ):
 	
 	def region_str( self, zero_based=False ):
 		if zero_based:
-			return "%s:%s-%s" % tuple( map( str, [ self.seqname, int( self.start ) - 1, int( self.end ) - 1 ]))
+			return "%s:%s-%s" % tuple( map( str, [ self.seqname, int( self.start ) + 1, int( self.end ) + 1 ]))
 		elif not zero_based:
 			return "%s:%s-%s" % ( self.seqname, self.start, self.end )		
 	
