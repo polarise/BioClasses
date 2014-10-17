@@ -26,7 +26,7 @@ class FrameshiftTranscript( object ):
 			( 0, 0 ), signal, self.length, position_score )
 	
 	def __repr__( self ):
-		output_str = "Transcript: %s\n" % self.name
+		output_str = "Transcript: %s of length %s\n" % ( self.name, self.length )
 		i = 1
 		for pos,FS in self.frameshift_sites.iteritems():
 			output_str += "Frameshift #%s: %s at %s (pos-score = %s).\n" % ( i, \
@@ -34,6 +34,12 @@ class FrameshiftTranscript( object ):
 			i += 1
 		
 		return output_str
+
+	def rough_equality( self, FS ):
+		if len( self.frameshift_sites ) > 0 and len( FS.frameshift_sites ) > 0:
+			return True
+		else:
+			return False
 			
 		
 	
