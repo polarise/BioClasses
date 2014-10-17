@@ -19,8 +19,9 @@ class TabixResult( object ):
 				print >> sys.stderr, "Warning: unable to create iterator for %s" % region
 			tabix_result = list()
 		if store_tabix_result:
-			self.tabix_result = tabix_result			
+			self.tabix_result = tabix_result
 		self.chrom, self.start, self.end = self.process_region_str( region )
+		self.length = ( self.end - self.start ) + 1
 		if filetype == "bed":
 			self.count, self.density, self.serial_data = self.compute_stats( tabix_result )
 		elif filetype == "gtf" or filetype == "gff":
@@ -57,7 +58,7 @@ class TabixResult( object ):
 		
 		# fill in the blanks for count_data
 		serial_data = list()
-		for pos in xrange( self.start, self.end + 1, 1 ):
+		for pos in xrange( self.start - 1, self.end, 1 ):
 			try:
 				serial_data.append( count_data[pos] )
 			except KeyError:
