@@ -22,3 +22,5 @@ from Transcript import *
 from Exon import *
 from TabixResult import *
 from FrameshiftTranscript import *
+from WorkerProcess import *
+from ParallelTask import *
