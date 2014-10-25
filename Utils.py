@@ -1,6 +1,26 @@
+import sys
 import numpy as np
 import math
 import scipy as sp
+
+def PrintStatic( line, stderr=True ):
+	"""
+	Print to sdtderr without a newline at the end
+	"""
+	if stderr:
+		sys.stderr.write( "\r%s".ljust( 20 ) % line )
+	else:
+		sys.stdout.write( "\r%s".ljust( 20 ) % line )
+	sys.stderr.flush()
+	
+def msg( msg, newline=True ):
+	"""
+	Neat function to write error messages to the screen
+	"""
+	if newline:
+		print >> sys.stderr, msg
+	else:
+		print >> sys.stderr, msg,
 
 def savgol(x, window_size=3, order=2, deriv=0, rate=1):
 	"""

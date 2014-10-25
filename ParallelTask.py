@@ -5,10 +5,15 @@ import multiprocessing
 from WorkerProcess import *
 
 class ParallelTask( object ):
-	def __init__( self, input_container, callback, num_of_processors=1 ):
+	def __init__( self, input_container, callback, num_of_processors=1, var=None, lock=None ):
 		self.input_container = input_container
 		self.callback = callback
-		self.num_of_processors = num_of_processors
+		self.var = var
+		self.lock = lock
+		if num_of_processors == 0:
+			self.num_of_processors = multiprocessing.cpu_count()
+		else:
+			self.num_of_processors = num_of_processors
 	
 	def run( self ):
 		# create the input and output queues
@@ -23,7 +28,7 @@ class ParallelTask( object ):
 			input_queue.put( "END" )
 		
 		# create the WorkerProcess objects
-		procs = [ WorkerProcess( i, input_queue, output_queue, self.callback ) \
+		procs = [ WorkerProcess( i, input_queue, output_queue, self.callback, self.var, self.lock ) \
 			for i in xrange( self.num_of_processors )]
 		
 		# start the processes
@@ -46,4 +51,4 @@ class ParallelTask( object ):
 		# block until the output queue joins
 		output_queue.join()
 		
-	return output_container
+		return output_container

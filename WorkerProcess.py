@@ -4,7 +4,7 @@ import sys
 import multiprocessing
 
 class WorkerProcess( multiprocessing.Process ):
-	def __init__( self, i, q1, q2, callback ):
+	def __init__( self, i, q1, q2, callback, var, lock ):
 		"""
 		i		- process_id
 		q1	- input queue
@@ -15,6 +15,8 @@ class WorkerProcess( multiprocessing.Process ):
 		self.q1 = q1
 		self.q2 = q2
 		self.callback = callback # an externally-defined function that takes myobject as input
+		self.var = var
+		self.lock = lock
 	
 	def run( self ):
 		"""
@@ -28,7 +30,7 @@ class WorkerProcess( multiprocessing.Process ):
 				self.q2.task_done() # unblock q2
 				break # die
 			else:
-				result = self.callback( myobject )
+				result = self.callback( myobject, self.var, self.lock )
 				self.q2.put( result )
 				self.q1.task_done() # unblock q1
 				self.q2.task_done() # unblock q2
